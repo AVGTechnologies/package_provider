@@ -85,7 +85,7 @@ Vagrant.configure(2) do |config|
   #sudo -u vagrant -i bash -lc 'curl -sSL https://get.rvm.io | bash -s stable --ruby'
   ## sudo -u vagrant -i source /usr/local/rvm/scripts/rvm
 
-  #sudo -u vagrant -i bash -lc 'gem install bundler'
+  #sudo -u vagrant -i bash -lc 'sudo gem install bundler'
   #sudo -u vagrant -i bash -lc 'cd /vagrant && bundle install'
   SHELL
 end
