@@ -72,20 +72,15 @@ Vagrant.configure(2) do |config|
   sudo locale-gen en_US en_US.UTF-8 cs_CZ.UTF-8
   sudo dpkg-reconfigure locales
 
-  #sudo apt-get update
+  sudo apt-get update
   sudo apt-get install -y git-core build-essential
-  #sudo apt-get install -y libpq-dev
-  #sudo apt-get install -y sqlite3
-  #sudo apt-get install -y redis-server
 
+  sudo -u vagrant -i git config --global url."https://github.com".insteadOf git://github.com
 
-  #sudo -u vagrant -i git config --global url."https://github.com".insteadOf git://github.com
+  su - vagrant -c 'curl -sSL https://rvm.io/mpapis.asc | gpg --import -'
+  su - vagrant -c 'curl -sSL https://get.rvm.io | bash -s stable --ruby'
 
-  #sudo -u vagrant -i bash -lc 'curl -sSL https://rvm.io/mpapis.asc | gpg --import -'
-  #sudo -u vagrant -i bash -lc 'curl -sSL https://get.rvm.io | bash -s stable --ruby'
-  ## sudo -u vagrant -i source /usr/local/rvm/scripts/rvm
-
-  #sudo -u vagrant -i bash -lc 'sudo gem install bundler'
-  #sudo -u vagrant -i bash -lc 'cd /vagrant && bundle install'
+  su - vagrant -c 'gem install bundler'
+  su - vagrant -c 'cd /vagrant && bundle install'
   SHELL
 end
