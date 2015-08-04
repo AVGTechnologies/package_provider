@@ -68,19 +68,23 @@ Vagrant.configure(2) do |config|
   # Enable provisioning with a shell script. Additional provisioners such as
   # Puppet, Chef, Ansible, Salt, and Docker are also available. Please see the
   # documentation for more information about their specific syntax and use.
-  config.vm.provision "shell", inline: <<-SHELL
+  config.vm.provision "shell", privileged: false, inline: <<-SHELL
   sudo locale-gen en_US en_US.UTF-8 cs_CZ.UTF-8
   sudo dpkg-reconfigure locales
 
   sudo apt-get update
   sudo apt-get install -y git-core build-essential
 
-  sudo -u vagrant -i git config --global url."https://github.com".insteadOf git://github.com
+  git config --global url."https://github.com".insteadOf git://github.com
 
-  su - vagrant -c 'curl -sSL https://rvm.io/mpapis.asc | gpg --import -'
-  su - vagrant -c 'curl -sSL https://get.rvm.io | bash -s stable --ruby'
+  curl -sSL https://rvm.io/mpapis.asc | gpg --import -
+  curl -sSL https://get.rvm.io | bash -s stable --ruby
+  source /home/vagrant/.rvm/scripts/rvm
 
-  su - vagrant -c 'gem install bundler'
-  su - vagrant -c 'cd /vagrant && bundle install'
+  cd /vagrant
+  [[ -f .ruby-version ]] && rvm install $(cat .ruby-version)
+  gem install bundler
+  bundle install
+  
   SHELL
 end
