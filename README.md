@@ -1,15 +1,13 @@
-_____            _                                           _     _
-|  __ \         | |                                         (_)   | |
-| |__) |_ _  ___| | ____ _  __ _  ___   _ __  _ __ _____   ___  __| | ___ _ __
-|  ___/ _` |/ __| |/ / _` |/ _` |/ _ \ | '_ \| '__/ _ \ \ / / |/ _` |/ _ \ '__|
-| |  | (_| | (__|   < (_| | (_| |  __/ | |_) | | | (_) \ V /| | (_| |  __/ |
-|_|   \__,_|\___|_|\_\__,_|\__, |\___| | .__/|_|  \___/ \_/ |_|\__,_|\___|_|
-                            __/ |      | |
-                           |___/       |_|
-===============================================================================
+Package provider
+================
+Service for obtaining zip packages from git repositories  
+based on user specification. You can download specific  
+folders from multiple repositories and combine them  
+into one zip file.
 
 
-Prerequisites
--------------
+
+Prerequisites for development
+-----------------------------
 * Vagrant installed (https://www.vagrantup.com/) and added to PATH
 * Path to SSH added to PATH
