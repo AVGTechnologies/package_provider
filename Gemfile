@@ -1,9 +1,9 @@
-source "https://rubygems.org"
+source 'https://rubygems.org'
 
-ruby "2.2.2"
+ruby '2.2.2'
 
-#gem 'rubyzip'
-
-group :test do
+group :test, :development do
   gem 'rspec'
+  gem 'fakefs'
+  gem 'rubocop'
 end

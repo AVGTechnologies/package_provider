@@ -1,80 +1,120 @@
 require 'tmpdir'
-require "open3"
+require 'open3'
 
+# Namespace that handles git operations for PackageProvider
 module PackageProvider
+  # Class for cloning remote or local git repositories
+  # and checkouting specified folders
   class Repository
-
     attr_reader :repo_url, :repo_root
+
+    CLONE_SCRIPT = File.join(PackageProvider.root, 'lib', 'scripts', 'clone.sh')
+    INIT_SCRIPT = File.join(PackageProvider.root,
+                            'lib',
+                            'scripts',
+                            'init_repo.sh')
 
     class InvalidRepoPath < ArgumentError
     end
+    # rubocop:disable TrivialAccessors
+    def self.temp_prefix=(tp)
+      @temp_prefix = tp
+    end
 
-    def initialize(git_repo_url, git_repo_local_root = nil)
-
-      if git_repo_local_root
-        raise InvalidRepoPath, "Folder #{git_repo_local_root} does not exists" unless Dir.exists?(git_repo_local_root)
+    def self.temp_prefix
+      @temp_prefix || 'pp_repo_'
+    end
+    # rubocop:enable TrivialAccessors
+    def initialize(git_repo_url, git_repo_local_cache_root = nil)
+      if git_repo_local_cache_root && !Dir.exist?(git_repo_local_cache_root)
+        fail InvalidRepoPath,
+             "Directory #{git_repo_local_cache_root.inspect} does not exists"
       end
 
       @repo_url = git_repo_url
-      @repo_root = Dir.mktmpdir('pp_repo_')
+      @repo_root = Dir.mktmpdir(self.class.temp_prefix)
 
-      clone!(git_repo_local_root)
+      init_repo!(git_repo_local_cache_root)
     end
 
-    def clone(dest_dir, treeish, options)
-      fetch!
+    def logger
+      PackageProvider.logger
+    end
 
-      if !Dir.exists?(dest_dir)
+    def clone(dest_dir, treeish, paths, use_submodules = false)
+      fail InvalidRepoPath, "Folder #{dest_dir} exists" if Dir.exist?(dest_dir)
 
-        args = ["git", "--git-dir=#{repo_root}" ,"config core.sparsecheckout true"]
-        o, e, s = Open3.capture3(args.join(' '))
-        processOutput(o, e, s, 'set sparse chekout')
+      logger.debug "clonning repo #{repo_root}: " \
+                   " [dest_dir: #{dest_dir.inspect}, " \
+                   "treeish: #{treeish.inspect}, " \
+                   "use_submodules: #{use_submodules.inspect}]"
 
-        path = File.join()
-        system("echo ppc/ > .git/info/sparse-checkout")
-        #FileName="git";
-        #Arguments="-c http.sslverify=false archive --format zip -0 --output=C:\cache_stage\packages-parts\4709073bacdd2437c075632b7ca1b680\_TEMP_\ff8757fe-b58a-411c-8266-4c5a368c6554.zip d74fb192451426d9e5801b65d1e72c99914b79bd automation";
+      begin
+        Dir.mkdir(dest_dir)
+        fetch(treeish)
+
+        fill_sparse_checkout_file(paths)
+
+        command = [CLONE_SCRIPT]
+        command << '--use-submodules' if use_submodules
+        command.concat [repo_root, dest_dir, treeish]
+
+        run_command({ 'ENV' => PackageProvider.env }, command, chdir: repo_root)
+        # touch .package_provider_ready
+        dest_dir
+      rescue => err
+        FileUtils.rm_rf(dest_dir) rescue nil
+        logger.error "Cannot clone repository #{repo_root}: #{err}"
+        raise
       end
-
-      dest_dir
     end
 
+    # rubocop:disable UnusedMethodArgument
     def fetch(treeish = nil)
       fetch!
     end
-
+    # rubocop:enable UnusedMethodArgument
     def destroy
       FileUtils.rm_rf(@repo_root)
     end
 
     private
 
-    def clone!(git_repo_local_root)
-      repo_source = git_repo_local_root || repo_url
-
-      cmd = ["git","-c http.sslverify=false","clone -s -l --no-hardlinks --bare", repo_source, repo_root]
-      o, e, s = Open3.capture3(cmd.join(' '))
-      processOutput(o, e, s, 'clone')
-
-      if git_repo_local_root
-        o, e, s = Open3.capture3({}, 'git', 'remote', 'set-url', 'origin', repo_url, chdir: '...')
-        PackageProvider.logger.debug o
-        PackageProvider.logger.error e
-      end
+    def init_repo!(git_repo_local_cache_root)
+      run_command(
+        { 'ENV' => PackageProvider.env },
+        [INIT_SCRIPT, repo_url, git_repo_local_cache_root || ''],
+        chdir: repo_root
+      )
     end
 
     def fetch!
-      cmd = ["git","--git-dir=#{repo_root}","fetch --all"]
-      o, e, s = Open3.capture3(cmd.join(' '))
-      processOutput(o, e, s, 'fetch')
+      run_command({}, ['git', 'fetch', '--all'], chdir: repo_root)
     end
 
-    def processOutput(stdout, stderr, status, action)
-      #puts action
-      #puts e
-      #puts o
-      #puts s
+    def fill_sparse_checkout_file(paths)
+      paths = ['/**'] if paths.nil?
+      path = File.join(repo_root, '.git', 'info', 'sparse-checkout')
+
+      logger.debug "Setting sparse-checkout to: #{paths.join("\n")}"
+      File.open(path, 'w+') do |f|
+        f.puts paths.join("\n")
+      end
     end
 
+    def run_command(env_hash, params, options_hash)
+      logger.debug "Running shell command: #{params.inspect}"
+      o, e, s = Open3.capture3(env_hash, *params, options_hash)
+
+      if s.success?
+        logger.info "Command #{params.inspect}" \
+                    "returns #{o.inspect} on stdout" unless o.empty?
+        logger.info "Command #{params.inspect}" \
+                    "returns #{e.inspect} on stderr" unless e.empty?
+      else
+        logger.error "Command #{params.inspect} failed!" \
+                     "stdout: #{o.inspect}, stderr: #{e.inspect}"
+      end
+    end
   end
 end
