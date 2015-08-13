@@ -2,10 +2,10 @@ describe PackageProvider::Repository do
   PackageProvider::Repository.temp_prefix = "pp_integration_tests_#{rand(1000)}"
 
   let(:persist_folders_prefix) { 'pp_integration_per' }
-  let(:repo) { PackageProvider::Repository.new(fake_remote_repo_dir) }
   let(:fake_remote_repo_dir) do
     File.join(PackageProvider.root, 'spec', 'factories', 'testing-repo')
   end
+  let(:repo) { PackageProvider::Repository.new(fake_remote_repo_dir) }
 
   after(:each) do
     repo && repo.destroy

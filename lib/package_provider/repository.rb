@@ -112,8 +112,8 @@ module PackageProvider
         logger.info "Command #{params.inspect}" \
                     "returns #{e.inspect} on stderr" unless e.empty?
       else
-        logger.error "Command #{params.inspect} failed!" \
-                     "stdout: #{o.inspect}, stderr: #{e.inspect}"
+        logger.error "Command #{params.inspect} failed! " \
+                     "STDOUT: #{o.inspect}, STDERR: #{e.inspect}"
       end
     end
   end

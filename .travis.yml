@@ -2,8 +2,11 @@ language: ruby
 rvm:
   - "2.2.2"
 
-sudo: false
-
+sudo: true
 cache: bundler
+
+before_script: |
+  mkdir -p /tmp/submodule_repo
+  sudo  mount --bind $(pwd)/spec/factories/testing-submodule-repo /tmp/submodule_repo
 
 script: bundle exec rspec
