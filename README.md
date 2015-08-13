@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/AVG-Automation/package_provider.svg)](https://travis-ci.org/AVG-Automation/package_provider)
+
 Package provider
 ================
 Service for obtaining zip packages from git repositories  
