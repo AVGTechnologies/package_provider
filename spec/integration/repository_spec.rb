@@ -1,9 +1,14 @@
-describe PackageProvider::Repository do
+describe 'Repository integration' do
   PackageProvider::Repository.temp_prefix = "pp_integration_tests_#{rand(1000)}"
 
   let(:persist_folders_prefix) { 'pp_integration_per' }
   let(:fake_remote_repo_dir) do
     File.join(PackageProvider.root, 'spec', 'factories', 'testing-repo')
+    # if ur developing with vagrant on windows machine you need to
+    # copy test repo (spec/factories/test-repo) to your
+    # file system ex. /tmp/testing-repo to git clone fix
+    # just comment line 6 and uncomment line below
+    # File.join('/var/tmp/factories', 'testing-repo')
   end
   let(:repo) { PackageProvider::Repository.new(fake_remote_repo_dir) }
 

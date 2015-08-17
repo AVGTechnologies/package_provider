@@ -6,4 +6,5 @@ group :test, :development do
   gem 'rspec'
   gem 'fakefs'
   gem 'rubocop'
+  gem 'codeclimate-test-reporter', require: nil
 end

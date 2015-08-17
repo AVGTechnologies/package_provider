@@ -1,10 +1,20 @@
 $LOAD_PATH << 'lib'
 require 'package_provider'
+require 'repository_request'
 require 'package_provider/repository'
 require 'support/helpers'
+require 'request_parser/parser'
+require 'codeclimate-test-reporter'
+CodeClimate::TestReporter.start
+
+PackageProvider.logger.level = Logger::WARN
 
 RSpec.configure do |config|
   config.include Helpers
+
+  config.filter_run focus: true
+  config.filter_run_excluding broken: true
+  config.run_all_when_everything_filtered = true
   # rspec-expectations config goes here. You can use an alternate
   # assertion/expectation library such as wrong or the stdlib/minitest
   # assertions if you prefer.
