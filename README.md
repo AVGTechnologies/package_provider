@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/AVG-Automation/package_provider.svg)](https://travis-ci.org/AVG-Automation/package_provider)
+[![Build Status](https://travis-ci.org/AVGTechnologies/package_provider.svg)](https://travis-ci.org/AVGTechnologies/package_provider)
 
 Package provider
 ================
