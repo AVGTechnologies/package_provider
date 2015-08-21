@@ -107,14 +107,17 @@ module PackageProvider
       o, e, s = Open3.capture3(env_hash, *params, options_hash)
 
       if s.success?
-        logger.info "Command #{params.inspect}" \
-                    "returns #{o.inspect} on stdout" unless o.empty?
-        logger.info "Command #{params.inspect}" \
-                    "returns #{e.inspect} on stderr" unless e.empty?
+        log_result('stdout', params, o)
+        log_result('stderr', params, e)
       else
         logger.error "Command #{params.inspect} failed! " \
                      "STDOUT: #{o.inspect}, STDERR: #{e.inspect}"
       end
+    end
+
+    def log_result(std, params, result)
+      logger.info "Command #{params.inspect}" \
+                  "returns #{result.inspect} on #{std}" unless result.empty?
     end
   end
 end
