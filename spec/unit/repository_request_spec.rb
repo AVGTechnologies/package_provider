@@ -22,15 +22,20 @@ describe PackageProvider::RepositoryRequest do
     part
   end
 
+  let(:subject3) do
+    part = PackageProvider::RepositoryRequest.new(
+      'fake_repo', 'fake_commit', 'fake_branch')
+
+    part
+  end
+
   describe '#add_folder_override' do
     it 'sorts out correctly folder override' do
-      ns = PackageProvider::RepositoryRequest
-
       expect(subject2.folder_override).to eq(
-        [ns::PackageRequestFolderOverride.new('a'),
-         ns::PackageRequestFolderOverride.new('a', 'a'),
-         ns::PackageRequestFolderOverride.new('b'),
-         ns::PackageRequestFolderOverride.new('b', 'b')])
+        [PackageProvider::RepositoryRequest::FolderOverride.new('a'),
+         PackageProvider::RepositoryRequest::FolderOverride.new('a', 'a'),
+         PackageProvider::RepositoryRequest::FolderOverride.new('b'),
+         PackageProvider::RepositoryRequest::FolderOverride.new('b', 'b')])
     end
   end
 
@@ -40,6 +45,28 @@ describe PackageProvider::RepositoryRequest do
     end
     it 'not sets git modules false when .gitmodules is missing' do
       expect(subject2.use_submodules?).to be false
+    end
+  end
+
+  describe '#to_json' do
+    it 'returns json formated class with folder overide' do
+      expect(subject.to_json).to eql(
+        MultiJson.dump(
+          repository: 'fake_repo',
+          branch: nil,
+          commit: 'fake_commit',
+          folderOverride: [
+            { source: '.gitmodules', destinationOverride: nil },
+            { source: 'a', destinationOverride: 'b' },
+            { source: 'b', destinationOverride: 'a' }]))
+    end
+    it 'returns json formated class without folder override' do
+      expect(subject3.to_json).to eql(
+        MultiJson.dump(
+          repository: 'fake_repo',
+          branch: 'fake_branch',
+          commit: 'fake_commit',
+          folderOverride: nil))
     end
   end
 end

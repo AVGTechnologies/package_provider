@@ -1,13 +1,26 @@
+require 'multi_json'
+
 module PackageProvider
   # Help class providing information abou package part to be returned
   class RepositoryRequest
     # Help class providing information abou folder override
-    class PackageRequestFolderOverride
+    class FolderOverride
       attr_reader :source, :destination
 
       def initialize(source, destination = nil)
         @source = source.strip
         @destination = destination ? destination.strip : nil
+      end
+
+      def as_json
+        {
+          source: source,
+          destinationOverride: destination
+        }
+      end
+
+      def to_json
+        MultiJson.dump(as_json)
       end
 
       def ==(other)
@@ -29,13 +42,30 @@ module PackageProvider
     end
 
     def add_folder_override(source, dest = nil)
-      @folder_override << PackageRequestFolderOverride.new(source, dest)
-      @folder_override.sort!
+      folder_override << FolderOverride.new(source, dest)
+      folder_override.sort!
     end
 
     def use_submodules?
-      @folder_override.include?(PackageRequestFolderOverride.new(
-                                  '.gitmodules', nil))
+      folder_override.include?(FolderOverride.new('.gitmodules', nil))
+    end
+
+    def as_json
+      repository_request_hash = {
+        repository: repo,
+        branch: branch,
+        commit: commit_hash,
+        folderOverride: nil
+      }
+
+      repository_request_hash[:folderOverride] =
+        folder_override.map(&:as_json) unless folder_override.empty?
+
+      repository_request_hash
+    end
+
+    def to_json
+      MultiJson.dump(as_json)
     end
 
     def ==(other)
