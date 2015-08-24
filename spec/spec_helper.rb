@@ -1,11 +1,12 @@
+require 'codeclimate-test-reporter'
+CodeClimate::TestReporter.start
+
 $LOAD_PATH << 'lib'
 require 'package_provider'
 require 'repository_request'
 require 'package_provider/repository'
 require 'support/helpers'
 require 'request_parser/parser'
-require 'codeclimate-test-reporter'
-CodeClimate::TestReporter.start
 
 PackageProvider.logger.level = Logger::WARN
 
