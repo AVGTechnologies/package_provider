@@ -60,7 +60,7 @@ describe 'Repository integration' do
       submodule_dir = File.join('/', 'tmp', 'submodule_repo')
 
       it 'extracts submodule' do
-        pending "write mount --bind #{submodule_repo_root} #{submodule_dir}" \
+        pending "write mount --bind #{submodule_repo_root} #{submodule_dir} " \
           'as root for this test' unless Dir.exist?(submodule_dir)
 
         paths = ['/submodule', '.gitmodules']
@@ -79,7 +79,7 @@ describe 'Repository integration' do
       end
 
       it 'extracts complete repository with specific submodule version' do
-        pending "write mount --bind #{submodule_repo_root} #{submodule_dir}" \
+        pending "write mount --bind #{submodule_repo_root} #{submodule_dir} " \
           'as root for this test' unless Dir.exist?(submodule_dir)
 
         paths = ['/**']
