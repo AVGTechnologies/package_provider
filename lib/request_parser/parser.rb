@@ -13,12 +13,8 @@ module PackageProvider
           folder_override = Regexp.last_match[1]
         end
 
-        src_branch, src_commit_hash = source_and_folder_override.split(':', 2)
-
-        if src_commit_hash.nil? && valid_commit_hash_format?(src_branch)
-          src_commit_hash = src_branch
-          src_branch = nil
-        end
+        src_branch, src_commit_hash =
+          get_branch_and_commit_hash(source_and_folder_override)
 
         resp = RepositoryRequest.new(repo, src_commit_hash, src_branch)
 
@@ -42,6 +38,17 @@ module PackageProvider
 
     def valid_commit_hash_format?(commit_hash)
       commit_hash.downcase =~ /\A[0-9a-f]+\z/
+    end
+
+    def get_branch_and_commit_hash(branch_and_commit_hash)
+      src_branch, src_commit_hash = branch_and_commit_hash.split(':', 2)
+
+      if src_commit_hash.nil? && valid_commit_hash_format?(src_branch)
+        src_commit_hash = src_branch
+        src_branch = nil
+      end
+
+      [src_branch, src_commit_hash]
     end
   end
 end
