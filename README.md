@@ -15,3 +15,4 @@ Prerequisites for development on windows machine
 -----------------------------
 * Vagrant installed (https://www.vagrantup.com/) and added to PATH
 * Path to SSH added to PATH
+
