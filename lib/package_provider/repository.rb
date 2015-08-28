@@ -1,5 +1,6 @@
 require 'tmpdir'
 require 'open3'
+require 'benchmark'
 
 # Namespace that handles git operations for PackageProvider
 module PackageProvider
@@ -22,7 +23,7 @@ module PackageProvider
 
     class CannotFetchRepo < StandardError
     end
-
+    
     class CannotCloneRepo < StandardError
     end
 
@@ -34,8 +35,8 @@ module PackageProvider
     def self.temp_prefix
       @temp_prefix || 'pp_repo_'
     end
-
     # rubocop:enable TrivialAccessors
+
     def initialize(git_repo_url, git_repo_local_cache_root = nil)
       if git_repo_local_cache_root && !Dir.exist?(git_repo_local_cache_root)
         fail InvalidRepoPath,
@@ -71,7 +72,7 @@ module PackageProvider
         command.concat [repo_root, dest_dir, treeish]
 
         success, stderr = run_command(
-          { 'ENV' => PackageProvider.env }, command, chdir: repo_root)
+          { 'ENV' => PackageProvider.env }, command, change_pwd, 'clone')
         fail CannotCloneRepo, stderr unless success
         # touch .package_provider_ready
         dest_dir
@@ -87,24 +88,30 @@ module PackageProvider
       fetch!
     end
     # rubocop:enable UnusedMethodArgument
+
     def destroy
       FileUtils.rm_rf(@repo_root)
     end
 
     private
 
+    def change_pwd
+      { chdir: repo_root }
+    end
+
     def init_repo!(git_repo_local_cache_root)
       success, stderr = run_command(
         { 'ENV' => PackageProvider.env },
         [INIT_SCRIPT, repo_url, git_repo_local_cache_root || ''],
-        chdir: repo_root
+        change_pwd,
+        'init_repo'
       )
       fail CannotInitRepo, stderr unless success
     end
 
     def fetch!
       success, stderr = run_command(
-        {}, ['git', 'fetch', '--all'], chdir: repo_root)
+        {}, ['git', 'fetch', '--all'], change_pwd, 'fetch')
       fail CannotFetchRepo, stderr unless success
     end
 
@@ -118,16 +125,24 @@ module PackageProvider
       end
     end
 
-    def run_command(env_hash, params, options_hash)
+    def run_command(env_hash, params, options_hash, operation)
       logger.debug "Running shell command: #{params.inspect}"
-      o, e, s = Open3.capture3(env_hash, *params, options_hash)
+
+      o, e, s = ['', '', '']
+
+      time = Benchmark.realtime do
+        o, e, s = Open3.capture3(env_hash, *params, options_hash)
+      end
 
       if s.success?
         log_result('stdout', params, o)
         log_result('stderr', params, e)
+        Metriks.timer("packageprovider.repository.#{operation}").update(time)
       else
         logger.error "Command #{params.inspect} failed! " \
                      "STDOUT: #{o.inspect}, STDERR: #{e.inspect}"
+
+        Metriks.meter("packageprovider.repository.#{operation}.error").mark
       end
       [s.success?, e]
     end
