@@ -29,22 +29,12 @@ describe PackageProvider::RepositoryRequest do
     part
   end
 
-  describe '#add_folder_override' do
-    it 'sorts out correctly folder override' do
-      expect(subject2.folder_override).to eq(
-        [PackageProvider::RepositoryRequest::FolderOverride.new('a'),
-         PackageProvider::RepositoryRequest::FolderOverride.new('a', 'a'),
-         PackageProvider::RepositoryRequest::FolderOverride.new('b'),
-         PackageProvider::RepositoryRequest::FolderOverride.new('b', 'b')])
-    end
-  end
-
   describe '#submodules?' do
     it 'sets git modules true when .gitmodules is present' do
-      expect(subject.use_submodules?).to be true
+      expect(subject.submodules?).to be true
     end
     it 'not sets git modules false when .gitmodules is missing' do
-      expect(subject2.use_submodules?).to be false
+      expect(subject2.submodules?).to be false
     end
   end
 
@@ -56,9 +46,9 @@ describe PackageProvider::RepositoryRequest do
           branch: nil,
           commit: 'fake_commit',
           folderOverride: [
+            { source: 'b', destinationOverride: 'a' },
             { source: '.gitmodules', destinationOverride: nil },
-            { source: 'a', destinationOverride: 'b' },
-            { source: 'b', destinationOverride: 'a' }]))
+            { source: 'a', destinationOverride: 'b' }]))
     end
     it 'returns json formated class without folder override' do
       expect(subject3.to_json).to eql(

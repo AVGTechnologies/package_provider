@@ -26,10 +26,6 @@ module PackageProvider
       def ==(other)
         source == other.source && destination == other.destination
       end
-
-      def <=>(other)
-        "#{source}:#{destination}" <=> "#{other.source}:#{other.destination}"
-      end
     end
 
     attr_reader :repo, :commit_hash, :branch, :folder_override
@@ -43,10 +39,9 @@ module PackageProvider
 
     def add_folder_override(source, dest = nil)
       folder_override << FolderOverride.new(source, dest)
-      folder_override.sort!
     end
 
-    def use_submodules?
+    def submodules?
       folder_override.include?(FolderOverride.new('.gitmodules', nil))
     end
 
