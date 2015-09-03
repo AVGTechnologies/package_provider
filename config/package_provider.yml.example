@@ -2,6 +2,10 @@ default: &defaults
   sentry_dsn: 'https://hash:hash@example.com'
   log_level: 0
   time_zone: :utc
+  allowed_origin: '*'
+  bind: '0.0.0.0'
+  base_url: '/api/v1'
+  show_exceptions: false
   graphite:
     host:
     port: 2003
@@ -14,6 +18,7 @@ development:
   <<: *defaults
 
 test:
+  <<: *defaults
   sentry_dsn:
   log_level: <%= Logger::WARN %>
   time_zone: :utc

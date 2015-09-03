@@ -27,6 +27,21 @@ module PackageProvider
       end
     end
 
+    def parse_json(request)
+      JSON.parse(request).map do |req|
+        resp =
+          RepositoryRequest.new(req['repository'], req['commit'], req['branch'])
+
+        if req['folderOverride']
+          req['folderOverride'].map do |fo|
+            resp.add_folder_override(fo['source'], fo['destinationOverride'])
+          end
+        end
+
+        resp
+      end
+    end
+
     private
 
     def tsd_request2parts(request)
