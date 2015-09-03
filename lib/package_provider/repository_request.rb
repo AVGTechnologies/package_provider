@@ -19,8 +19,8 @@ module PackageProvider
         }
       end
 
-      def to_json
-        MultiJson.dump(as_json)
+      def to_json(options = {})
+        MultiJson.dump(as_json, options)
       end
 
       def ==(other)
@@ -59,8 +59,8 @@ module PackageProvider
       repository_request_hash
     end
 
-    def to_json
-      MultiJson.dump(as_json)
+    def to_json(options = {})
+      MultiJson.dump(as_json, options)
     end
 
     def ==(other)

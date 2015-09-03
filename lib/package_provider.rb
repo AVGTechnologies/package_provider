@@ -29,7 +29,10 @@ module PackageProvider
       system_env || 'development'
     end
 
+    attr_reader :start_time
+
     def setup
+      @start_time = Time.now
       logger.level = config.log_level || Logger::WARN
       setup_raven
       setup_metriks
@@ -42,20 +45,22 @@ module PackageProvider
     end
 
     def setup_raven
+      return unless config.sentry_dsn
       ::Raven.configure do |config|
         config.dsn = PackageProvider.config.sentry_dsn
-        config.environments = %w(production)
         config.current_environment = PackageProvider.env
         config.excluded_exceptions = %w(Sinatra::NotFound)
-      end if config.sentry_dsn
+      end
     end
 
     def setup_metriks
-      Metriks::Reporter::Graphite.new(
+      return unless config.graphite
+      reporter = Metriks::Reporter::Graphite.new(
         config.graphite.host,
         config.graphite.port,
         config.graphite.options || {}
-      ) if PackageProvider.config.graphite
+      )
+      reporter.start
     end
   end
 end

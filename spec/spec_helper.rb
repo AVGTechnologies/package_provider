@@ -1,12 +1,17 @@
-# require 'codeclimate-test-reporter'
-# CodeClimate::TestReporter.start
+ENV['ENV'] = ENV['RACK_ENV'] = ENV['RAILS_ENV'] = ENV['APP_ENV'] = 'test'
 
 $LOAD_PATH << 'lib'
+
+require 'rack'
+require 'rspec'
+
 require 'package_provider'
-require 'repository_request'
+require 'package_provider/repository_request'
 require 'package_provider/repository'
+require 'package_provider/repository_alias'
+require 'package_provider/request_parser/parser'
 require 'support/helpers'
-require 'request_parser/parser'
+require 'app'
 
 PackageProvider.setup
 

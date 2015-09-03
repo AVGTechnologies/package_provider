@@ -10,10 +10,8 @@ module PackageProvider
     attr_reader :repo_url, :repo_root
 
     CLONE_SCRIPT = File.join(PackageProvider.root, 'lib', 'scripts', 'clone.sh')
-    INIT_SCRIPT = File.join(PackageProvider.root,
-                            'lib',
-                            'scripts',
-                            'init_repo.sh')
+    INIT_SCRIPT = File.join(
+      PackageProvider.root, 'lib', 'scripts', 'init_repo.sh')
 
     class InvalidRepoPath < ArgumentError
     end
@@ -23,7 +21,7 @@ module PackageProvider
 
     class CannotFetchRepo < StandardError
     end
-    
+
     class CannotCloneRepo < StandardError
     end
 
@@ -57,9 +55,9 @@ module PackageProvider
       fail InvalidRepoPath, "Folder #{dest_dir} exists" if Dir.exist?(dest_dir)
 
       logger.debug "clonning repo #{repo_root}: " \
-                   " [dest_dir: #{dest_dir.inspect}, " \
-                   "treeish: #{treeish.inspect}, " \
-                   "use_submodules: #{use_submodules.inspect}]"
+        " [dest_dir: #{dest_dir.inspect}, " \
+        "treeish: #{treeish.inspect}, " \
+        "use_submodules: #{use_submodules.inspect}]"
 
       begin
         Dir.mkdir(dest_dir)
@@ -127,29 +125,31 @@ module PackageProvider
 
     def run_command(env_hash, params, options_hash, operation)
       logger.debug "Running shell command: #{params.inspect}"
-
-      o, e, s = ['', '', '']
+      o = e = s = nil
 
       time = Benchmark.realtime do
         o, e, s = Open3.capture3(env_hash, *params, options_hash)
       end
 
       if s.success?
-        log_result('stdout', params, o)
-        log_result('stderr', params, e)
+        log_result('stdout', operation, params, o)
+        log_result('stderr', operation, params, e)
         Metriks.timer("packageprovider.repository.#{operation}").update(time)
       else
-        logger.error "Command #{params.inspect} failed! " \
-                     "STDOUT: #{o.inspect}, STDERR: #{e.inspect}"
-
+        log_error(params, operation, o, e)
         Metriks.meter("packageprovider.repository.#{operation}.error").mark
       end
       [s.success?, e]
     end
 
-    def log_result(std, params, result)
-      logger.info "Command #{params.inspect}" \
-                  "returns #{result.inspect} on #{std}" unless result.empty?
+    def log_result(std, operation, params, result)
+      logger.info "Command[#{operation}] #{params.inspect}" \
+        "returns #{result.inspect} on #{std}" unless result.empty?
+    end
+
+    def log_error(params, operation, o, e)
+      logger.error "Command[#{operation}] #{params.inspect} failed! " \
+        "STDOUT: #{o.inspect}, STDERR: #{e.inspect}"
     end
   end
 end

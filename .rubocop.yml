@@ -1,7 +1,7 @@
 AllCops:
   Exclude:
     - 'scripts/benchmark.rb'
-    
+
 Style/EndOfLine:
   Enabled: false
 
@@ -16,3 +16,6 @@ Metrics/AbcSize:
 
 Style/RescueModifier:
   Enabled: false
+
+Metrics/ClassLength:
+   Max: 120

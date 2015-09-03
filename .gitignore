@@ -1,2 +1,3 @@
 /.vagrant
 /config/package_provider.yml
+/config/repository_aliases.yml
