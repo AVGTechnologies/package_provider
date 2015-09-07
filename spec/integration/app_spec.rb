@@ -40,6 +40,10 @@ describe 'Application API' do
         FakeFS.deactivate!
       end
 
+      after(:all) do
+        PackageProvider::RepositoryAlias.reload!
+      end
+
       it 'reloads alias list' do
         get '/api/v1/repositories/new_alias', {}, headers
         expect(last_response.status).to eq 404

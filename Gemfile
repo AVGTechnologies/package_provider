@@ -12,8 +12,9 @@ gem 'multi_json',       '~> 1.0'
 gem 'rack'
 gem 'rack-contrib'
 # see https://github.com/resque/resque/issues/934
-gem 'sinatra',          '~> 1.4.6', require: 'sinatra/base'
-gem 'sinatra-contrib',  '~> 1.4.4'
+gem 'sinatra',          '~> 1.4', require: 'sinatra/base'
+gem 'sinatra-contrib',  '~> 1.4'
+gem 'rubyzip',          '~> 1.1'
 
 gem 'unicorn'
 

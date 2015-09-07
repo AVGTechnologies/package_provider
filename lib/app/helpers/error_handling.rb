@@ -19,10 +19,6 @@ module ErrorHandling
   def self.registered(app)
     app.helpers HaltHelpers
 
-    app.error PackageProvider::RepositoryAlias::NotFound do
-      halt 404, { message: 'Not found' }.to_json
-    end
-
     app.error JSON::ParserError, MultiJson::DecodeError do
       halt_with_400('Cannot parse JSON')
     end

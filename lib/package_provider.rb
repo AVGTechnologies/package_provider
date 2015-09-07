@@ -2,6 +2,7 @@ require 'logger'
 require 'raven'
 require 'metriks'
 require 'metriks/reporter/graphite'
+require 'zip'
 
 require 'package_provider/config'
 
@@ -36,6 +37,7 @@ module PackageProvider
       logger.level = config.log_level || Logger::WARN
       setup_raven
       setup_metriks
+      setup_zip
     end
 
     private
@@ -61,6 +63,15 @@ module PackageProvider
         config.graphite.options || {}
       )
       reporter.start
+    end
+
+    def setup_zip
+      Zip.setup do |c|
+        c.on_exists_proc = true
+        c.continue_on_exists_proc = true
+        c.unicode_names = true
+        c.default_compression = config.zip.default_compression
+      end
     end
   end
 end

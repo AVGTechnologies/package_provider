@@ -70,6 +70,7 @@ GEM
       rainbow (>= 1.99.1, < 3.0)
       ruby-progressbar (~> 1.4)
     ruby-progressbar (1.7.5)
+    rubyzip (1.1.7)
     sentry-raven (0.14.0)
       certifi
       faraday (>= 0.7.6)
@@ -114,10 +115,11 @@ DEPENDENCIES
   rack-test
   rspec
   rubocop
+  rubyzip (~> 1.1)
   sentry-raven (~> 0.14)
   settingslogic (~> 2.0)
-  sinatra (~> 1.4.6)
-  sinatra-contrib (~> 1.4.4)
+  sinatra (~> 1.4)
+  sinatra-contrib (~> 1.4)
   unicorn
 
 BUNDLED WITH

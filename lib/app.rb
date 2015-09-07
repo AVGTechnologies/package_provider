@@ -1,16 +1,16 @@
-# Service providing the package provider functionality
-
 $LOAD_PATH << 'lib'
+
 require 'rack'
 require 'rack/contrib'
 require 'sinatra/base'
 require 'sinatra/namespace'
 
 require 'package_provider'
+require 'package_provider/repository'
+require 'package_provider/package_packer'
 require 'package_provider/repository_alias'
 require 'package_provider/repository_request'
 require 'package_provider/request_parser/parser'
-
 require 'app/helpers/error_handling'
 
 PackageProvider.setup
@@ -56,13 +56,27 @@ class App < Sinatra::Base
     end
 
     get '/repositories/:alias' do
-      PackageProvider::RepositoryAlias.find(params['alias']).to_json
+      repo_alias = PackageProvider::RepositoryAlias.find(params['alias'])
+      unless repo_alias
+        mes = "Couldn't find RepositoryAlias with alias=" \
+              "#{params['alias'].inspect}"
+        halt 404, { message: mes }.to_json
+      end
+      repo_alias.to_json
     end
 
     post '/package/download' do
       parser = PackageProvider::Parser.new
-      reqs = parser.parse_json(request.body.read)
-      reqs.to_json
+      package_request = parser.parse_json(request.body.read)
+
+      package_request.normalize
+
+      destination_dir = File.join(
+        PackageProvider.config.package_cache_root, package_request.request_hash)
+
+      send_file_if_exists(destination_dir)
+
+      prepare_package(package_request, destination_dir)
 =begin
       result = Packer.get_from_cache(request)
       halt 200, result if result
@@ -81,6 +95,40 @@ class App < Sinatra::Base
       PackkerWorker.perform_async(res)
       halt 204
 =end
+    end
+
+    private
+
+    def send_file_if_exists(destination_dir)
+      return unless Dir.exist?(destination_dir)
+      send_file File.join(destination_dir, 'package.zip'),
+                type: 'application/zip', status: 200
+    end
+
+    def prepare_package(reqs, destination_dir)
+      FileUtils.mkdir_p(destination_dir)
+
+      packer = PackageProvider::PackagePacker.new(destination_dir)
+
+      reqs.each { |req| prepare_package_part(req, packer) }
+
+      packer.flush
+    end
+
+    def prepare_package_part(req, packer)
+      checkout_dir = Dir.mktmpdir('pp_cache')
+      FileUtils.rm_rf(checkout_dir)
+      checkout_mask = req.folder_override.each_with_object([]) do |fo, s|
+        s << fo.source
+      end
+
+      repo = PackageProvider::Repository.new(req.repo)
+      repo.clone(checkout_dir, req.commit_hash, checkout_mask)
+      repo.destroy
+
+      req.folder_override.each do |fo|
+        packer.add_folder(checkout_dir, fo)
+      end
     end
   end
 

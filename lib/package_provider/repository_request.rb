@@ -1,4 +1,5 @@
 require 'multi_json'
+require_relative 'repository_alias'
 
 module PackageProvider
   # Help class providing information abou package part to be returned
@@ -25,6 +26,11 @@ module PackageProvider
 
       def ==(other)
         source == other.source && destination == other.destination
+      end
+
+      def normalize
+        source.tr!('\\', '/')
+        destination.tr!('\\', '/') if destination
       end
     end
 
@@ -61,6 +67,18 @@ module PackageProvider
 
     def to_json(options = {})
       MultiJson.dump(as_json, options)
+    end
+
+    def normalize
+      if @folder_override.empty?
+        add_folder_override(*PackageProvider.config.default_folder_override)
+      end
+
+      found_alias = RepositoryAlias.find(repo.strip)
+      @repo = found_alias ? found_alias.url : @repo
+
+      folder_override.map(&:normalize)
+      self
     end
 
     def ==(other)

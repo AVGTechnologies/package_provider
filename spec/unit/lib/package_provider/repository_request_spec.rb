@@ -1,7 +1,7 @@
 describe PackageProvider::RepositoryRequest do
   let(:subject) do
     part = PackageProvider::RepositoryRequest.new(
-      'fake_repo', 'fake_commit', nil)
+      'package_provider', 'fake_commit', nil)
 
     part.add_folder_override('b', 'a')
     part.add_folder_override('.gitmodules', nil)
@@ -42,7 +42,7 @@ describe PackageProvider::RepositoryRequest do
     it 'returns json formated class with folder overide' do
       expect(subject.to_json).to eql(
         MultiJson.dump(
-          repository: 'fake_repo',
+          repository: 'package_provider',
           branch: nil,
           commit: 'fake_commit',
           folderOverride: [
@@ -57,6 +57,23 @@ describe PackageProvider::RepositoryRequest do
           branch: 'fake_branch',
           commit: 'fake_commit',
           folderOverride: nil))
+    end
+  end
+
+  describe '#normalize' do
+    it 'adds default folder override' do
+      subject3.normalize
+      expect(subject3.folder_override).to eq(
+        [PackageProvider::RepositoryRequest::FolderOverride.new(
+          *PackageProvider.config.default_folder_override)]
+      )
+    end
+
+    it 'rewrites repo alias' do
+      subject.normalize
+      expect(subject.repo).to eq(
+        PackageProvider::RepositoryAlias.find('package_provider').url
+      )
     end
   end
 end
