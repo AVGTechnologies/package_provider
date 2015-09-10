@@ -5,9 +5,6 @@ module PackageProvider
   class RepositoryAlias
     attr_reader :url, :alias
 
-    class NotFound < StandardError
-    end
-
     CONFIG_FILE = -> { "#{PackageProvider.root}/config/repository_aliases.yml" }
 
     def initialize(url, repo_alias)
@@ -27,9 +24,9 @@ module PackageProvider
       def aliases_hash
         return @aliases_hash if defined?(@aliases_hash) && @aliases_hash
         content = File.read(CONFIG_FILE.call)
-        sym = PackageProvider.env.to_sym
         @aliases_hash =
-          YAML.load(content)[sym][:aliases].with_indifferent_access || {}
+          YAML.load(content)
+          .with_indifferent_access[PackageProvider.env][:aliases] || {}
       end
 
       def reload!
@@ -42,9 +39,7 @@ module PackageProvider
       end
 
       def find(ali)
-        res = all.find { |t| t.alias == ali }
-        res ? res : fail(
-          NotFound, "Couldn't find RepositoryAlias with alias=#{ali.inspect}")
+        all.find { |t| t.alias == ali }
       end
     end
   end

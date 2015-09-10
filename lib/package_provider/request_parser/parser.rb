@@ -1,3 +1,5 @@
+require_relative '../package_request'
+
 module PackageProvider
   # Class for parsing package requests
   class Parser
@@ -6,7 +8,7 @@ module PackageProvider
     end
 
     def parse(request)
-      tsd_request2parts(request).map do |package_part|
+      tsd_request2parts(request).inject(PackageRequest.new) do |s, package_part|
         repo, source_and_folder_override = package_part.split('|', 2)
 
         if source_and_folder_override.sub!(/\((.*)\)$/, '')
@@ -23,12 +25,12 @@ module PackageProvider
           resp.add_folder_override(*value)
         end
 
-        resp
+        s << resp
       end
     end
 
     def parse_json(request)
-      JSON.parse(request).map do |req|
+      JSON.parse(request).inject(PackageRequest.new) do |s, req|
         resp =
           RepositoryRequest.new(req['repository'], req['commit'], req['branch'])
 
@@ -38,7 +40,7 @@ module PackageProvider
           end
         end
 
-        resp
+        s << resp
       end
     end
 

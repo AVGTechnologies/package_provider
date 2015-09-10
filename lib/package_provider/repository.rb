@@ -60,7 +60,7 @@ module PackageProvider
         "use_submodules: #{use_submodules.inspect}]"
 
       begin
-        Dir.mkdir(dest_dir)
+        FileUtils.mkdir_p(dest_dir)
         fetch(treeish)
 
         fill_sparse_checkout_file(paths)
@@ -72,7 +72,7 @@ module PackageProvider
         success, stderr = run_command(
           { 'ENV' => PackageProvider.env }, command, change_pwd, 'clone')
         fail CannotCloneRepo, stderr unless success
-        # touch .package_provider_ready
+
         dest_dir
       rescue => err
         FileUtils.rm_rf(dest_dir) rescue nil
