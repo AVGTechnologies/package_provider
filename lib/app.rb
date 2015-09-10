@@ -10,6 +10,7 @@ require 'package_provider/repository'
 require 'package_provider/package_packer'
 require 'package_provider/repository_alias'
 require 'package_provider/repository_request'
+require 'package_provider/repository_cache_list'
 require 'package_provider/request_parser/parser'
 require 'app/helpers/error_handling'
 
@@ -122,7 +123,9 @@ class App < Sinatra::Base
         s << fo.source
       end
 
-      repo = PackageProvider::Repository.new(req.repo)
+      local_path = PackageProvider::RepositoryCacheList.find(req.repo)
+
+      repo = PackageProvider::Repository.new(req.repo, local_path)
       repo.clone(checkout_dir, req.commit_hash, checkout_mask)
       repo.destroy
 
