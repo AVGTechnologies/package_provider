@@ -7,7 +7,7 @@ module PackageProvider
 
     def request_hash
       sha = Digest::SHA256.new
-      sha.hexdigest to_json
+      sha.hexdigest normalize.to_json
     end
   end
 end
