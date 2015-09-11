@@ -6,7 +6,7 @@ require 'sinatra/base'
 require 'sinatra/namespace'
 
 require 'package_provider'
-require 'package_provider/repository'
+require 'package_provider/cached_repository'
 require 'package_provider/package_packer'
 require 'package_provider/repository_alias'
 require 'package_provider/repository_request'
@@ -78,6 +78,7 @@ class App < Sinatra::Base
       send_file_if_exists(destination_dir)
 
       prepare_package(package_request, destination_dir)
+    end
 =begin
       result = Packer.get_from_cache(request)
       halt 200, result if result
@@ -96,7 +97,6 @@ class App < Sinatra::Base
       PackkerWorker.perform_async(res)
       halt 204
 =end
-    end
 
     private
 
@@ -117,16 +117,15 @@ class App < Sinatra::Base
     end
 
     def prepare_package_part(req, packer)
-      checkout_dir = Dir.mktmpdir('pp_cache')
-      FileUtils.rm_rf(checkout_dir)
       checkout_mask = req.folder_override.each_with_object([]) do |fo, s|
         s << fo.source
       end
 
       local_path = PackageProvider::RepositoryCacheList.find(req.repo)
 
-      repo = PackageProvider::Repository.new(req.repo, local_path)
-      repo.clone(checkout_dir, req.commit_hash, checkout_mask)
+      repo = PackageProvider::CachedRepository.new(req.repo, local_path)
+      checkout_dir = repo.cached_clone(
+        req.commit_hash, checkout_mask, req.submodules?)
       repo.destroy
 
       req.folder_override.each do |fo|

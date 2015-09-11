@@ -6,8 +6,8 @@ default: &defaults
   bind: '0.0.0.0'
   base_url: '/api/v1'
   show_exceptions: false
-  package_cache_root: /tmp/cached_packages
-  repository_cache_root: /tmp/cached_repositories
+  package_cache_root: /var/tmp
+  repository_cache_root: /var/tmp
   default_folder_override: ['automation', nil]
   zip:
     default_compression: <%= Zlib::BEST_COMPRESSION %>

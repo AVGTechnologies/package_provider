@@ -19,7 +19,7 @@ describe PackageProvider::RepositoryCacheList do
   let(:subject) { PackageProvider::PackagePacker.new(package_path) }
 
   describe '::find' do
-    it 'returns config settings for git repo url' do
+    it 'returns local path for git repo url' do
       expect(PackageProvider::RepositoryCacheList.find(repo_url)).to eq(path)
     end
     it 'return nil for unknown repo url' do
