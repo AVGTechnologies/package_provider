@@ -16,16 +16,16 @@ describe PackageProvider::PackagePacker do
       override = PackageProvider::RepositoryRequest::FolderOverride.new(
         'lib', 'docs')
 
-      expect(subject.zip_generator).to receive(:add_folder).with(any_args)
+      expect_any_instance_of(PackageProvider::ZipFileGenerator)
+        .to receive(:add_folder).once
 
       subject.add_folder(package_path, override)
     end
   end
   describe '#write' do
     it 'calls zip archive write' do
-      expect(subject.zip_generator).to receive(:write)
-        .with(any_args)
-        .and_return('OK')
+      expect_any_instance_of(PackageProvider::ZipFileGenerator)
+        .to receive(:write).once
 
       subject.flush
     end
