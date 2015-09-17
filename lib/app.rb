@@ -6,11 +6,8 @@ require 'sinatra/base'
 require 'sinatra/namespace'
 
 require 'package_provider'
-require 'package_provider/cached_repository'
-require 'package_provider/package_packer'
-require 'package_provider/repository_alias'
+require 'package_provider/cached_package'
 require 'package_provider/repository_request'
-require 'package_provider/repository_config'
 require 'package_provider/request_parser/parser'
 require 'app/helpers/error_handling'
 
@@ -72,61 +69,11 @@ class App < Sinatra::Base
 
       package_request.normalize
 
-      destination_dir = File.join(
-        PackageProvider.config.package_cache_root, package_request.request_hash)
+      result = PackageProvider::CachedPackage.from_cache(
+        package_request.request_hash)
+      return send_file(result, type: 'application/zip') if result
 
-      send_file_if_exists(destination_dir)
-
-      prepare_package(package_request, destination_dir)
-    end
-=begin
-      result = Packer.get_from_cache(request)
-      halt 200, result if result
-
-      needs_clone_repo = false
-      reqs.each do |req|
-        next if Repo.is_clonned?(req[:repo], req[:paths], res[:sumbodules])
-        needs_clone_repo = true
-        RepoWorker.perform_async(req[:repo], req[:paths], res[:sumbodules])
-      end
-      if needs_clone_repo
-        PackkerWorker.perform_async(res, in: 10)
-        halt 204
-      end
-
-      PackkerWorker.perform_async(res)
-      halt 204
-=end
-
-    private
-
-    def send_file_if_exists(destination_dir)
-      return unless Dir.exist?(destination_dir)
-      send_file File.join(destination_dir, 'package.zip'),
-                type: 'application/zip', status: 200
-    end
-
-    def prepare_package(reqs, destination_dir)
-      FileUtils.mkdir_p(destination_dir)
-
-      packer = PackageProvider::PackagePacker.new(destination_dir)
-
-      reqs.each { |req| prepare_package_part(req, packer) }
-
-      packer.flush
-    end
-
-    def prepare_package_part(req, packer)
-      local_path = PackageProvider::RepositoryConfig.find(req.repo)[:cache_dir]
-
-      repo = PackageProvider::CachedRepository.new(req.repo, local_path)
-      checkout_dir = repo.cached_clone(
-        req.commit_hash, req.checkout_mask, req.submodules?)
-      repo.destroy
-
-      req.folder_override.each do |fo|
-        packer.add_folder(checkout_dir, fo)
-      end
+      halt 202, { message: 'Package is being prepared' }.to_json
     end
   end
 

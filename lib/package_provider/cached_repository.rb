@@ -8,15 +8,36 @@ module PackageProvider
     class CloneInProgress < StandardError
     end
 
+    class << self
+      def cached?(treeish, paths, use_submodules = false)
+        dir = cache_dir(treeish, paths, use_submodules)
+        repo_ready?(dir)
+      end
+
+      def cache_dir(treeish, paths, use_submodules)
+        @sha256 ||= Digest::SHA256.new
+        h = { treeish: treeish, paths: paths, submodule: use_submodules }
+
+        digest = @sha256.hexdigest h.to_json
+
+        File.join(PackageProvider.config.repository_cache_root, digest)
+      end
+
+      def repo_ready?(path)
+        Dir.exist?(path) && File.exist?("#{path}.package_part_ready") &&
+          !File.exist?("#{path}.clone_lock")
+      end
+    end
+
     def cached_clone(treeish, paths, use_submodules = false)
-      cached_dir = repo_cache_dir(treeish, paths, use_submodules)
-      return cached_dir if repo_ready?(cached_dir)
+      cached_dir = CachedRepository.cache_dir(treeish, paths, use_submodules)
+      return cached_dir if CachedRepository.repo_ready?(cached_dir)
 
       locked_file = nil
       begin
         locked_file = lock_repo(cached_dir)
       rescue Timeout::Error
-        return cached_dir if repo_ready?(cached_dir)
+        return cached_dir if CachedRepository.repo_ready?(cached_dir)
         raise CloneInProgress
       end
 
@@ -51,20 +72,6 @@ module PackageProvider
       return unless f
       f.flock(File::LOCK_UN)
       File.delete(f.path)
-    end
-
-    def repo_cache_dir(treeish, paths, use_submodules)
-      @sha256 ||= Digest::SHA256.new
-      h = { treeish: treeish, paths: paths, submodule: use_submodules }
-
-      digest = @sha256.hexdigest h.to_json
-
-      File.join(PackageProvider.config.repository_cache_root, digest)
-    end
-
-    def repo_ready?(path)
-      Dir.exist?(path) && File.exist?("#{path}.package_part_ready") &&
-        !File.exist?("#{path}.clone_lock")
     end
 
     def repo_ready!(path)

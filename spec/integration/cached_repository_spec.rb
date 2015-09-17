@@ -10,7 +10,9 @@ describe 'Cached repository integration' do
   let(:repo) { PackageProvider::CachedRepository.new(fake_remote_repo_dir) }
   let(:repo2) { PackageProvider::CachedRepository.new(fake_remote_repo_dir) }
   let(:paths) { ['docs/**'] }
-  let(:dir) { repo.send('repo_cache_dir', commit_hash, paths, false) }
+  let(:dir) do
+    PackageProvider::CachedRepository.cache_dir(commit_hash, paths, false)
+  end
   let(:commit_hash) { '9191ed1ad760d66e84ef2e6fc24ea85e70404638' }
 
   after(:each) do
@@ -39,16 +41,17 @@ describe 'Cached repository integration' do
     end
 
     it 'handles multiple same requests at once' do
+      thread_ready = false
       t = Thread.new do
         expect(repo).to receive(:clone).with(any_args) do
+          thread_ready = true
           Thread.pass
           sleep 3
         end
         repo.cached_clone(commit_hash, paths)
       end
 
-      Thread.pass
-      sleep 0.1
+      Thread.pass until thread_ready
 
       expect { repo2.cached_clone(commit_hash, paths) }.to raise_error(
         PackageProvider::CachedRepository::CloneInProgress)
