@@ -23,10 +23,8 @@ describe PackageProvider::RepositoryRequest do
   end
 
   let(:subject3) do
-    part = PackageProvider::RepositoryRequest.new(
+    PackageProvider::RepositoryRequest.new(
       'fake_repo', 'fake_commit', 'fake_branch')
-
-    part
   end
 
   describe '#submodules?' do
@@ -68,12 +66,17 @@ describe PackageProvider::RepositoryRequest do
           *PackageProvider.config.default_folder_override)]
       )
     end
-
     it 'rewrites repo alias' do
       subject.normalize
       expect(subject.repo).to eq(
         PackageProvider::RepositoryAlias.find('package_provider').url
       )
+    end
+  end
+
+  describe '#checkout_mask' do
+    it 'returns checkout mask' do
+      expect(subject.checkout_mask).to eq(['b', '.gitmodules', 'a'])
     end
   end
 end

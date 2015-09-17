@@ -10,7 +10,7 @@ require 'package_provider/cached_repository'
 require 'package_provider/package_packer'
 require 'package_provider/repository_alias'
 require 'package_provider/repository_request'
-require 'package_provider/repository_cache_list'
+require 'package_provider/repository_config'
 require 'package_provider/request_parser/parser'
 require 'app/helpers/error_handling'
 
@@ -117,15 +117,11 @@ class App < Sinatra::Base
     end
 
     def prepare_package_part(req, packer)
-      checkout_mask = req.folder_override.each_with_object([]) do |fo, s|
-        s << fo.source
-      end
-
-      local_path = PackageProvider::RepositoryCacheList.find(req.repo)
+      local_path = PackageProvider::RepositoryConfig.find(req.repo)[:cache_dir]
 
       repo = PackageProvider::CachedRepository.new(req.repo, local_path)
       checkout_dir = repo.cached_clone(
-        req.commit_hash, checkout_mask, req.submodules?)
+        req.commit_hash, req.checkout_mask, req.submodules?)
       repo.destroy
 
       req.folder_override.each do |fo|

@@ -1,0 +1,23 @@
+default: &defaults
+  defaults:
+    pool_size: 1
+    timeout: 10
+
+  repositories:
+    git@github.com:AVGTechnologies/package_provider.git:
+      cache_dir: /var/tmp/package_provider_clone
+      pool_size: 5
+      timeout: 10
+    git@github.com:AVGTechnologies/lab_manager.git:
+      cache_dir: /var/tmp/lab_manager_clone
+      pool_size: 5
+      timeout: 10
+
+production:
+  <<: *defaults
+
+development:
+  <<: *defaults
+
+test:
+  <<: *defaults

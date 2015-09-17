@@ -81,6 +81,10 @@ module PackageProvider
       self
     end
 
+    def checkout_mask
+      @folder_override.each_with_object([]) { |fo, s| s << fo.source }
+    end
+
     def ==(other)
       repo == other.repo &&
         commit_hash == other.commit_hash &&

@@ -8,6 +8,8 @@ cache: bundler
 before_script: |
   cp config/package_provider.yml.example config/package_provider.yml
   cp config/repository_aliases.yml.example config/repository_aliases.yml
+  cp config/repository_config.yml.example config/repository_config.yml
+  
   mkdir -p /tmp/submodule_repo
   sudo  mount --bind $(pwd)/spec/factories/testing-submodule-repo /tmp/submodule_repo
 
