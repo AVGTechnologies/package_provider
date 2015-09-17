@@ -1,6 +1,6 @@
 require 'digest'
 require 'timeout'
-require_relative 'repository'
+require 'package_provider/repository'
 
 module PackageProvider
   # Class representing cached repository to avoid multiple cloninng

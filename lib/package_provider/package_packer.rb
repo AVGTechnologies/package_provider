@@ -1,4 +1,4 @@
-require_relative 'zip_file_generator'
+require 'package_provider/zip_file_generator'
 # zip ruby performance
 # http://blog.huangzhimin.com/2012/10/02/avoid-using-rubyzip/
 module PackageProvider
