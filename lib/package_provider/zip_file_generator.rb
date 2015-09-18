@@ -62,9 +62,11 @@ module PackageProvider
     def put_into_archive(disk_file_path, io, zip_file_path)
       io.get_output_stream(zip_file_path) do |f|
         fr = File.open(disk_file_path, 'rb')
+        # rubocop:disable AssignmentInCondition
         while buff = fr.read(BUFF_SIZE)
           f.write(buff)
         end
+        # rubocop:enable AssignmentInCondition
         fr.close
       end
     end

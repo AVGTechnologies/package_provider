@@ -1,0 +1,81 @@
+describe PackageProvider::CachedPackage do
+  cached_packages_test_path = Dir.mktmpdir('pp_unit_test')
+  cached_repositories_test_path = Dir.mktmpdir('pp_unit_test')
+
+  let(:request) { PackageProvider::PackageRequest.new }
+  let(:subject) do
+    PackageProvider::CachedPackage.new(request)
+  end
+  let(:subject2) do
+    PackageProvider::CachedPackage.new(request)
+  end
+
+  before(:each) do
+    allow(PackageProvider.config)
+      .to receive(:package_cache_root) { cached_packages_test_path }
+    allow(PackageProvider.config)
+      .to receive(:repository_cache_root) { cached_repositories_test_path }
+  end
+
+  after(:all) do
+    FileUtils.rm_rf(cached_packages_test_path)
+    FileUtils.rm_rf(cached_repositories_test_path)
+  end
+
+  describe '#repos_ready?' do
+    it 'return true on empty request' do
+      expect(subject.repos_ready?).to be true
+    end
+  end
+
+  describe '#cache_package?' do
+    it 'return archive on empty request' do
+      subject.cache_package
+
+      pac_file = PackageProvider::CachedPackage.from_cache(request.request_hash)
+
+      expect(pac_file).to match(/package.zip\Z/)
+      expect(File.exist?(pac_file)).to be true
+    end
+
+    it 'removes folder and .clone_lock file on error' do
+      expect(subject).to receive(:pack) { fail 'Testing error' }
+      subject.cache_package
+
+      expect(PackageProvider::CachedPackage.from_cache(request.request_hash))
+        .to be nil
+
+      path = PackageProvider::CachedPackage.package_path(request.request_hash)
+      expect(File.exist?("#{path}.package_clone_lock"))
+        .to be false
+    end
+
+    it 'raises error when packing is in progress' do
+      thread_ready = false
+      t = Thread.new do
+        expect(subject).to receive(:pack) do
+          thread_ready = true
+          Thread.pass
+          sleep 3
+        end
+        subject.cache_package
+      end
+
+      Thread.pass until thread_ready
+
+      expect { subject2.cache_package }.to raise_error(
+        PackageProvider::CachedPackage::PackingInProgress)
+      t.join
+    end
+
+    it 'sends message add_folder to package packer' do
+      expect_any_instance_of(PackageProvider::PackagePacker)
+        .to receive(:flush).once
+
+      expect_any_instance_of(PackageProvider::ZipFileGenerator)
+        .not_to receive(:add_folder)
+
+      subject.cache_package
+    end
+  end
+end

@@ -1,5 +1,5 @@
 require 'multi_json'
-require_relative 'repository_alias'
+require 'package_provider/repository_alias'
 
 module PackageProvider
   # Help class providing information abou package part to be returned

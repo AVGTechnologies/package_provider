@@ -1,10 +1,10 @@
-require_relative 'zip_file_generator'
+require 'package_provider/zip_file_generator'
 # zip ruby performance
 # http://blog.huangzhimin.com/2012/10/02/avoid-using-rubyzip/
 module PackageProvider
   # class managing packing package
   class PackagePacker
-    attr_reader :dest_dir, :zip_generator
+    attr_reader :dest_dir
 
     def initialize(dest_dir, file_name = 'package.zip')
       fail ArgumentError, 'dest_dir is required' unless dest_dir
