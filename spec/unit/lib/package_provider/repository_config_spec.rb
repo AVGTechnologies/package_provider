@@ -14,7 +14,7 @@ describe PackageProvider::RepositoryConfig do
     File.open("#{path}/repository_config.yml", 'w+') do |f|
       f.puts YAML.dump(
         test: { repositories: { repo_url => { cache_dir: path, timeout: 2 } },
-                defaults:     { timeout: 1, size: 1 }
+                defaults:     { timeout: 1, pool_size: 1 }
               })
     end
   end
@@ -37,7 +37,7 @@ describe PackageProvider::RepositoryConfig do
         .to eq(2)
     end
     it 'uses default value from config when property not defined' do
-      expect(PackageProvider::RepositoryConfig.find(repo_url)[:size])
+      expect(PackageProvider::RepositoryConfig.find(repo_url)[:pool_size])
         .to eq(1)
     end
   end
