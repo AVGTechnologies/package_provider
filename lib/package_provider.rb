@@ -3,6 +3,7 @@ require 'raven'
 require 'metriks'
 require 'metriks/reporter/graphite'
 require 'zip'
+require 'sidekiq'
 
 require 'package_provider/config'
 
@@ -38,6 +39,7 @@ module PackageProvider
       setup_raven
       setup_metriks
       setup_zip
+      setup_sidekiq
     end
 
     private
@@ -72,6 +74,11 @@ module PackageProvider
         c.unicode_names = true
         c.default_compression = config.zip.default_compression
       end
+    end
+
+    def setup_sidekiq
+      Sidekiq.default_worker_options = { 'backtrace' => true } if
+        config.log_level == Logger::DEBUG
     end
   end
 end
