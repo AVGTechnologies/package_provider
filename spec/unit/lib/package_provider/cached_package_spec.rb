@@ -22,12 +22,6 @@ describe PackageProvider::CachedPackage do
     FileUtils.rm_rf(cached_repositories_test_path)
   end
 
-  describe '#repos_ready?' do
-    it 'return true on empty request' do
-      expect(subject.repos_ready?).to be true
-    end
-  end
-
   describe '#cache_package?' do
     it 'return archive on empty request' do
       subject.cache_package

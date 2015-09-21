@@ -11,7 +11,9 @@ module PackageProvider
 
     class << self
       def from_cache(package_hash)
-        path_to_package(package_hash) if package_ready?(package_hash)
+        return nil unless package_ready?(package_hash)
+        Metriks.meter('packageprovider.package.cached').mark
+        path_to_package(package_hash)
       end
 
       def package_ready?(package_hash)
@@ -41,14 +43,6 @@ module PackageProvider
       @locked_package_file = nil
     end
 
-    def repos_ready?
-      @package_request.all? do |req|
-        PackageProvider::CachedRepository.cached?(
-          req.commit_hash, req.checkout_mask, req.submodules?
-        )
-      end
-    end
-
     def cache_package
       lock_package
       begin
@@ -64,6 +58,10 @@ module PackageProvider
     end
 
     private
+
+    def logger
+      PackageProvider.logger
+    end
 
     def pack
       packer = PackageProvider::PackagePacker.new(@path)
@@ -87,15 +85,18 @@ module PackageProvider
         file = "#{@path}.package_clone_lock"
         locked_file = File.open(file, File::RDWR | File::CREAT, 0644)
         locked_file.flock(File::LOCK_EX)
+        logger.info("Locking package #{file}")
         @locked_package_file = locked_file
       end
     rescue Timeout::Error
+      Metriks.meter('packageprovider.package.locked').mark
       raise PackingInProgress
     end
 
     def unlock_package
       return unless @locked_package_file
       @locked_package_file.flock(File::LOCK_UN)
+      logger.info("Unlocking package #{@locked_package_file.path}")
       File.delete(@locked_package_file.path)
     end
   end
