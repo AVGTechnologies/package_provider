@@ -15,3 +15,9 @@ Prerequisites for development on windows machine
 * Vagrant installed (https://www.vagrantup.com/) and added to PATH
 * Path to SSH added to PATH
 
+FAQ
+---
+1. How to remove all scheduled jobs?
+
+     require 'sidekiq/api'
+     Sidekiq::Queue.new('package_packer').clear

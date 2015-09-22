@@ -9,6 +9,9 @@ default: &defaults
   package_cache_root: /var/tmp
   repository_cache_root: /var/tmp
   default_folder_override: ['automation', nil]
+  sidekiq:
+    packer_reschedule_time: 15
+    packer_retry_on_error: false
   zip:
     default_compression: <%= Zlib::BEST_COMPRESSION %>
   graphite:

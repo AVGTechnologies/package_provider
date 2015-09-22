@@ -93,6 +93,18 @@ module PackageProvider
 
     private
 
+    def metriks_key
+      path = begin
+        URI.parse(@repo_url).path
+      rescue
+        @repo_url[/^.+@?[\w\d\.-]+:(.*)$/, 1]
+      end
+
+      path.sub!(/\.git\Z/, '')
+      path.gsub!(/\W/, '_')
+      path.gsub(/\A_/, '')
+    end
+
     def change_pwd
       { chdir: repo_root }
     end
@@ -134,10 +146,12 @@ module PackageProvider
       if s.success?
         log_result('stdout', operation, params, o)
         log_result('stderr', operation, params, e)
-        Metriks.timer("packageprovider.repository.#{operation}").update(time)
+        Metriks.timer(
+          "packageprovider.repository.#{operation}.#{metriks_key}").update(time)
       else
         log_error(params, operation, o, e)
-        Metriks.meter("packageprovider.repository.#{operation}.error").mark
+        Metriks.meter(
+          "packageprovider.repository.#{operation}.#{metriks_key}.error").mark
       end
       [s.success?, e]
     end

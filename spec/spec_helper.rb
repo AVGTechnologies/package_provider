@@ -11,6 +11,7 @@ require 'package_provider/repository'
 require 'package_provider/repository_alias'
 require 'package_provider/repository_connection_pool'
 require 'package_provider/request_parser/parser'
+require 'package_provider/workers/packer_worker'
 require 'support/helpers'
 require 'app'
 

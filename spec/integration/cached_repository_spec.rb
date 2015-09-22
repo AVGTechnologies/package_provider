@@ -32,6 +32,7 @@ describe 'Cached repository integration' do
       expect(File.exist?("#{dir}.package_part_ready")).to be true
       expect(File.exist?("#{dir}.clone_lock")).to be false
     end
+
     it 'loads from existing cache' do
       repo.cached_clone(commit_hash, paths)
 
