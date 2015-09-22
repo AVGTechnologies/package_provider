@@ -1,6 +1,7 @@
 require 'active_support/time'
 require 'package_provider/cached_repository'
 require 'package_provider/cached_package'
+require 'package_provider/workers/repository_worker'
 require 'package_provider/request_parser/parser'
 
 module PackageProvider
@@ -53,8 +54,8 @@ module PackageProvider
       PackageProvider.logger.debug(
         "scheduling clonning #{req.inspect}")
 
-      # PackageProvider::RepositoryWorker.perform_async(
-      #  req.repo, req.commit_hash, req.checkout_mask, req.submodules?)
+      PackageProvider::RepositoryWorker.perform_async(
+        req.repo, req.commit_hash, req.checkout_mask, req.submodules?)
 
       true
     end

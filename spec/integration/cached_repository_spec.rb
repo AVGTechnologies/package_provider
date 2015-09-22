@@ -17,6 +17,7 @@ describe 'Cached repository integration' do
 
   after(:each) do
     repo && repo.destroy
+    repo2 && repo2.destroy
   end
 
   describe '#cached_clone' do

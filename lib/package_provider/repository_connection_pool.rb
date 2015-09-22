@@ -20,5 +20,10 @@ module PackageProvider
         )
       end
     end
+
+    def destroy
+      @repos.each { |_key, value| value.shutdown(&:destroy) }
+      @repos = {}
+    end
   end
 end
