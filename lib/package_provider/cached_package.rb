@@ -28,6 +28,11 @@ module PackageProvider
         File.join(PackageProvider.config.package_cache_root, package_hash)
       end
 
+      def errors(package_hash)
+        file_path = File.join(path_to_package, package_hash + '.error')
+        File.read(file_path) if File.exist(file_path)
+      end
+
       private
 
       def path_to_package(package_hash)
@@ -65,19 +70,29 @@ module PackageProvider
 
     def pack
       packer = PackageProvider::PackagePacker.new(@path)
+      error = ''
       @package_request.each do |req|
         checkout_dir = PackageProvider::CachedRepository.cache_dir(
           req.commit_hash, req.checkout_mask, req.submodules?)
+
+        error += load_error(checkout_dir)
 
         req.folder_override.each do |fo|
           packer.add_folder(checkout_dir, fo)
         end
       end
-      packer.flush
+
+      error.empty? ? packer.flush : package_error!(error)
     end
 
     def package_ready!
       FileUtils.touch("#{@path}.package_ready")
+    end
+
+    def package_error!(message)
+      File.open("#{@path}.error", 'w+') do |f|
+        f.puts(message)
+      end
     end
 
     def lock_package
@@ -98,6 +113,11 @@ module PackageProvider
       @locked_package_file.flock(File::LOCK_UN)
       logger.info("Unlocking package #{@locked_package_file.path}")
       File.delete(@locked_package_file.path)
+    end
+
+    def load_error(path)
+      file_path = "#{path}.error"
+      File.exist?(file_path) ? File.read(file_path) : ''
     end
   end
 end

@@ -48,6 +48,10 @@ module PackageProvider
         logger.info("Started clonning: #{treeish} #{paths.inspect} " \
           "#{use_submodules} into #{cached_dir}")
         clone(cached_dir, treeish, paths, use_submodules)
+      rescue PackageProvider::Repository::CannotCloneRepo => err
+        repo_error!(cached_dir, err)
+      rescue PackageProvider::Repository::CannotFetchRepo => err
+        repo_error!(cached_dir, err)
       rescue => err
         logger.error("Expeption when clonning: #{treeish} #{paths.inspect} " \
           "#{use_submodules} into #{cached_dir} err: #{err}")
@@ -79,6 +83,12 @@ module PackageProvider
       Metriks.meter('packageprovider.repository.locked').mark
       Metriks.meter("packageprovider.repository.#{metriks_key}.locked").mark
       raise CloneInProgress
+    end
+
+    def repo_error!(path, message)
+      File.open("#{path}.error", 'w+') do |f|
+        f.puts(message)
+      end
     end
 
     def unlock_repo(f)

@@ -19,7 +19,9 @@ module PackageProvider
       package_request = parser.parse_json(package_request_as_json)
 
       waiting_for_repo = false
-      package_request.each { |req| waiting_for_repo ||= check_request(req) }
+      package_request.each do |req|
+        waiting_for_repo ||= !request_ready_or_schedule(req)
+      end
 
       if waiting_for_repo
         reschedule(package_request_as_json)
@@ -44,11 +46,11 @@ module PackageProvider
         package_request_as_json)
     end
 
-    def check_request(req)
-      return false if PackageProvider::CachedRepository.cached?(
+    def request_ready_or_schedule(req)
+      return true if PackageProvider::CachedRepository.cached?(
         req.commit_hash, req.checkout_mask, req.submodules?)
 
-      return false if PackageProvider::CachedRepository.in_progress?(
+      return true if PackageProvider::CachedRepository.in_progress?(
         req.commit_hash, req.checkout_mask, req.submodules?)
 
       PackageProvider.logger.debug(
@@ -57,7 +59,7 @@ module PackageProvider
       PackageProvider::RepositoryWorker.perform_async(
         req.repo, req.commit_hash, req.checkout_mask, req.submodules?)
 
-      true
+      false
     end
   end
 end

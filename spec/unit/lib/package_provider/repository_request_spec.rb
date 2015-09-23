@@ -58,16 +58,16 @@ describe PackageProvider::RepositoryRequest do
     end
   end
 
-  describe '#normalize' do
+  describe '#normalize!' do
     it 'adds default folder override' do
-      subject3.normalize
+      subject3.normalize!
       expect(subject3.folder_override).to eq(
         [PackageProvider::RepositoryRequest::FolderOverride.new(
           *PackageProvider.config.default_folder_override)]
       )
     end
     it 'rewrites repo alias' do
-      subject.normalize
+      subject.normalize!
       expect(subject.repo).to eq(
         PackageProvider::RepositoryAlias.find('package_provider').url
       )

@@ -28,7 +28,7 @@ module PackageProvider
         source == other.source && destination == other.destination
       end
 
-      def normalize
+      def normalize!
         source.tr!('\\', '/')
         destination.tr!('\\', '/') if destination
       end
@@ -69,7 +69,7 @@ module PackageProvider
       MultiJson.dump(as_json, options)
     end
 
-    def normalize
+    def normalize!
       if @folder_override.empty?
         add_folder_override(*PackageProvider.config.default_folder_override)
       end
@@ -77,7 +77,7 @@ module PackageProvider
       found_alias = RepositoryAlias.find(repo.strip)
       @repo = found_alias ? found_alias.url : @repo
 
-      folder_override.map(&:normalize)
+      folder_override.map(&:normalize!)
       self
     end
 

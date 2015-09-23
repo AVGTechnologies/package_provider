@@ -44,6 +44,5 @@ describe PackageProvider::RepositoryConfig do
         subject.perform(request.to_json)
       end
     end
-
   end
 end
