@@ -17,10 +17,13 @@ describe PackageProvider::RepositoryConfig do
                 defaults:     { timeout: 1, pool_size: 1 }
               })
     end
+
+    PackageProvider::RepositoryConfig.reload!
   end
 
   after(:all) do
     FakeFS.deactivate!
+    PackageProvider::RepositoryConfig.reload!
   end
 
   describe '::find' do

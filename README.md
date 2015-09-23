@@ -21,3 +21,4 @@ FAQ
 
      require 'sidekiq/api'
      Sidekiq::Queue.new('package_packer').clear
+     Sidekiq::Queue.new('clone_repository').clear

@@ -12,6 +12,11 @@ module PackageProvider
           .with_indifferent_access[PackageProvider.env] || {}
       end
 
+      def reload!
+        @config_hash = nil
+        config_hash
+      end
+
       def repositories
         config_hash[:repositories]
       end

@@ -1,0 +1,42 @@
+require 'sidekiq/testing'
+
+describe 'Repository worker integration' do
+  unless defined? ReposPool
+    ReposPool = PackageProvider::RepositoryConnectionPool.new
+  end
+
+  let(:repository_worker) { PackageProvider::RepositoryWorker.new }
+  let(:repo) do
+    File.join(PackageProvider.root, 'spec', 'factories', 'testing-repo')
+  end
+  let(:req) do
+    req = PackageProvider::RepositoryRequest.new(
+      repo, '23e4306cc6e8fe5122f075be971e6155e00b5ad9', nil)
+
+    req.add_folder_override('docs')
+    req
+  end
+
+  after(:each) do
+    dir = PackageProvider::CachedRepository.cache_dir(
+      req.commit_hash, req.checkout_mask, req.submodules?)
+
+    FileUtils.rm_rf(dir)
+    FileUtils.rm_rf("#{dir}.package_part_ready")
+  end
+
+  after(:all) do
+    ReposPool.destroy
+  end
+
+  it 'prepares repository caches' do
+    repository_worker.perform(
+      req.repo, req.commit_hash, req.checkout_mask, req.submodules?)
+
+    dir = PackageProvider::CachedRepository.cache_dir(
+      req.commit_hash, req.checkout_mask, req.submodules?)
+
+    expect(Dir.exist?(dir)).to be true
+    expect(Dir.exist?(File.join(dir, 'docs'))).to be true
+  end
+end

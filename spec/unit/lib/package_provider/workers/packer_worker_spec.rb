@@ -1,3 +1,5 @@
+require 'sidekiq/testing'
+
 describe PackageProvider::RepositoryConfig do
   let(:subject) { PackageProvider::PackerWorker.new }
   let(:request) do
@@ -29,6 +31,19 @@ describe PackageProvider::RepositoryConfig do
       subject.perform(request.to_json)
     end
 
-    it 'runs clone for missing repository'
+    it 'runs clone for missing repository' do
+      allow(PackageProvider::CachedRepository)
+        .to receive(:cached?) { false }
+
+      Sidekiq::Testing.inline! do
+        expect_any_instance_of(PackageProvider::RepositoryWorker)
+          .to receive(:perform)
+
+        expect(subject).to receive(:reschedule)
+
+        subject.perform(request.to_json)
+      end
+    end
+
   end
 end
