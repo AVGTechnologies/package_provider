@@ -10,33 +10,35 @@ module PackageProvider
     end
 
     class << self
-      def from_cache(package_hash)
-        return nil unless package_ready?(package_hash)
+      def from_cache(package_request)
+        return nil unless package_ready?(package_request)
         Metriks.meter('packageprovider.package.cached').mark
-        path_to_package(package_hash)
+        path_to_package(package_request)
       end
 
-      def package_ready?(package_hash)
-        path = package_path(package_hash)
+      def package_ready?(package_request)
+        path = package_path(package_request)
 
         Dir.exist?(path) && File.exist?("#{path}.package_ready") &&
           File.exist?(File.join(path, 'package.zip')) &&
           !File.exist?("#{path}.package_clone_lock")
       end
 
-      def package_path(package_hash)
-        File.join(PackageProvider.config.package_cache_root, package_hash)
+      def package_path(package_request)
+        File.join(
+          PackageProvider.config.package_cache_root,
+          package_request.fingerprint)
       end
 
-      def errors(package_hash)
-        file_path = File.join(path_to_package, package_hash + '.error')
+      def errors(package_request)
+        file_path = File.join("#{package_path(package_request)}.error")
         File.read(file_path) if File.exist(file_path)
       end
 
       private
 
-      def path_to_package(package_hash)
-        File.join(package_path(package_hash), 'package.zip')
+      def path_to_package(package_request)
+        File.join(package_path(package_request), 'package.zip')
       end
     end
 
@@ -44,7 +46,7 @@ module PackageProvider
 
     def initialize(package_request)
       @package_request = package_request
-      @path = CachedPackage.package_path(@package_request.request_hash)
+      @path = CachedPackage.package_path(@package_request)
       @locked_package_file = nil
     end
 

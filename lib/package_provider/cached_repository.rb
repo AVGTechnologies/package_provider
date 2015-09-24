@@ -1,4 +1,3 @@
-require 'digest'
 require 'timeout'
 require 'package_provider/repository'
 
@@ -13,24 +12,16 @@ module PackageProvider
 
     class << self
       def cached?(req)
-        dir = cache_dir(req)
-        repo_ready?(dir)
+        repo_ready?(cache_dir(req))
       end
 
       def in_progress?(req)
-        dir = cache_dir(req)
-        File.exist?("#{dir}.clone_lock")
+        File.exist?("#{cache_dir(req)}.clone_lock")
       end
 
       def cache_dir(req)
-        @sha256 ||= Digest::SHA256.new
-        h = { treeish: req.commit_hash,
-              paths: req.checkout_mask,
-              submodule: req.submodules? }
-
-        digest = @sha256.hexdigest h.to_json
-
-        File.join(PackageProvider.config.repository_cache_root, digest)
+        File.join(
+          PackageProvider.config.repository_cache_root, req.fingerprint)
       end
 
       def repo_ready?(path)

@@ -69,8 +69,7 @@ class App < Sinatra::Base
 
       package_request.normalize!
 
-      result = PackageProvider::CachedPackage.from_cache(
-        package_request.request_hash)
+      result = PackageProvider::CachedPackage.from_cache(package_request)
       return send_file(result, type: 'application/zip') if result
 
       halt 202, { message: 'Package is being prepared' }.to_json

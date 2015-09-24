@@ -2,25 +2,25 @@ describe PackageProvider::CachedPackage do
   cached_packages_test_path = Dir.mktmpdir('pp_unit_test')
   cached_repositories_test_path = Dir.mktmpdir('pp_unit_test')
 
-  let(:request) { PackageProvider::PackageRequest.new }
+  let(:package_request) { PackageProvider::PackageRequest.new }
   let(:repository_request) do
     req = PackageProvider::RepositoryRequest.new('repo', 'commit', nil)
     req.add_folder_override('docs')
     req
   end
-  let(:request2) do
+  let(:package_request2) do
     req = PackageProvider::PackageRequest.new
     req << repository_request
     req
   end
   let(:subject) do
-    PackageProvider::CachedPackage.new(request)
+    PackageProvider::CachedPackage.new(package_request)
   end
   let(:subject2) do
-    PackageProvider::CachedPackage.new(request)
+    PackageProvider::CachedPackage.new(package_request)
   end
   let(:subject3) do
-    PackageProvider::CachedPackage.new(request2)
+    PackageProvider::CachedPackage.new(package_request2)
   end
 
   before(:each) do
@@ -39,7 +39,7 @@ describe PackageProvider::CachedPackage do
     it 'return archive on empty request' do
       subject.cache_package
 
-      pac_file = PackageProvider::CachedPackage.from_cache(request.request_hash)
+      pac_file = PackageProvider::CachedPackage.from_cache(package_request)
 
       expect(pac_file).to match(/package.zip\Z/)
       expect(File.exist?(pac_file)).to be true
@@ -49,10 +49,10 @@ describe PackageProvider::CachedPackage do
       expect(subject).to receive(:pack) { fail 'Testing error' }
       subject.cache_package
 
-      expect(PackageProvider::CachedPackage.from_cache(request.request_hash))
+      expect(PackageProvider::CachedPackage.from_cache(package_request))
         .to be nil
 
-      path = PackageProvider::CachedPackage.package_path(request.request_hash)
+      path = PackageProvider::CachedPackage.package_path(package_request)
       expect(File.exist?("#{path}.package_clone_lock"))
         .to be false
     end
@@ -95,7 +95,7 @@ describe PackageProvider::CachedPackage do
       subject3.cache_package
 
       err_file_path = PackageProvider::CachedPackage.package_path(
-        request2.request_hash)
+        package_request2)
 
       expect(File.exist?(err_file_path)).to be true
     end

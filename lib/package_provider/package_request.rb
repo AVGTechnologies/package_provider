@@ -5,7 +5,7 @@ module PackageProvider
       map(&:normalize!)
     end
 
-    def request_hash
+    def fingerprint
       sha = Digest::SHA256.new
       sha.hexdigest normalize!.to_json
     end
