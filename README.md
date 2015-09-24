@@ -22,3 +22,7 @@ FAQ
      require 'sidekiq/api'
      Sidekiq::Queue.new('package_packer').clear
      Sidekiq::Queue.new('clone_repository').clear
+
+     if jobs are allready running then use
+     Sidekiq::RetrySet.new.clear
+     Sidekiq::ScheduledSet.new.clear

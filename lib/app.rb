@@ -67,7 +67,7 @@ class App < Sinatra::Base
       parser = PackageProvider::Parser.new
       package_request = parser.parse_json(request.body.read)
 
-      package_request.normalize
+      package_request.normalize!
 
       result = PackageProvider::CachedPackage.from_cache(
         package_request.request_hash)

@@ -3,11 +3,24 @@ describe PackageProvider::CachedPackage do
   cached_repositories_test_path = Dir.mktmpdir('pp_unit_test')
 
   let(:request) { PackageProvider::PackageRequest.new }
+  let(:repository_request) do
+    req = PackageProvider::RepositoryRequest.new('repo', 'commit', nil)
+    req.add_folder_override('docs')
+    req
+  end
+  let(:request2) do
+    req = PackageProvider::PackageRequest.new
+    req << repository_request
+    req
+  end
   let(:subject) do
     PackageProvider::CachedPackage.new(request)
   end
   let(:subject2) do
     PackageProvider::CachedPackage.new(request)
+  end
+  let(:subject3) do
+    PackageProvider::CachedPackage.new(request2)
   end
 
   before(:each) do
@@ -70,6 +83,24 @@ describe PackageProvider::CachedPackage do
         .not_to receive(:add_folder)
 
       subject.cache_package
+    end
+
+    it 'creates error file when one of repositories has error' do
+      path = PackageProvider::CachedRepository.cache_dir(
+        repository_request.commit_hash,
+        repository_request.checkout_mask,
+        repository_request.submodules?)
+
+      File.open("#{path}.error", 'w+') do |f|
+        f.puts('some error')
+      end
+
+      subject3.cache_package
+
+      err_file_path = PackageProvider::CachedPackage.package_path(
+        request2.request_hash)
+
+      expect(File.exist?(err_file_path)).to be true
     end
   end
 end

@@ -69,5 +69,31 @@ describe 'Cached repository integration' do
       expect(File.exist?("#{dir}.package_part_ready")).to be false
       expect(File.exist?("#{dir}.clone_lock")).to be false
     end
+
+    it 'creates error file on clone exception' do
+      expect(repo).to receive(:clone).with(any_args) do
+        fail PackageProvider::Repository::CannotCloneRepo
+      end
+
+      repo.cached_clone(commit_hash, paths)
+
+      expect(File.exist?("#{dir}.package_part_ready")).to be true
+      expect(File.exist?("#{dir}.error")).to be true
+
+      FileUtils.rm_rf("#{dir}.error")
+    end
+
+    it 'creates error file on fetch exception' do
+      expect(repo).to receive(:clone).with(any_args) do
+        fail PackageProvider::Repository::CannotFetchRepo
+      end
+
+      repo.cached_clone(commit_hash, paths)
+
+      expect(File.exist?("#{dir}.package_part_ready")).to be true
+      expect(File.exist?("#{dir}.error")).to be true
+
+      FileUtils.rm_rf("#{dir}.error")
+    end
   end
 end
