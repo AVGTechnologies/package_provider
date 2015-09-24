@@ -34,6 +34,23 @@ module PackageProvider
       end
     end
 
+    class << self
+      def from_json(json)
+        req = JSON.parse(json)
+
+        res = RepositoryRequest.new(
+          req['repository'], req['commit'], req['branch'])
+
+        if req['folderOverride']
+          req['folderOverride'].each do |fo|
+            res.add_folder_override(fo['source'], fo['destinationOverride'])
+          end
+        end
+
+        res
+      end
+    end
+
     attr_reader :repo, :commit_hash, :branch, :folder_override
 
     def initialize(repo, commit_hash, branch)

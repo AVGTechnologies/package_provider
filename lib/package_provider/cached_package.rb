@@ -72,8 +72,7 @@ module PackageProvider
       packer = PackageProvider::PackagePacker.new(@path)
       error = ''
       @package_request.each do |req|
-        checkout_dir = PackageProvider::CachedRepository.cache_dir(
-          req.commit_hash, req.checkout_mask, req.submodules?)
+        checkout_dir = PackageProvider::CachedRepository.cache_dir(req)
 
         error += load_error(checkout_dir)
 

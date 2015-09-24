@@ -47,17 +47,12 @@ module PackageProvider
     end
 
     def request_ready_or_schedule(req)
-      return true if PackageProvider::CachedRepository.cached?(
-        req.commit_hash, req.checkout_mask, req.submodules?)
+      return true if PackageProvider::CachedRepository.cached?(req)
+      return true if PackageProvider::CachedRepository.in_progress?(req)
 
-      return true if PackageProvider::CachedRepository.in_progress?(
-        req.commit_hash, req.checkout_mask, req.submodules?)
+      PackageProvider.logger.debug("scheduling clonning #{req.inspect}")
 
-      PackageProvider.logger.debug(
-        "scheduling clonning #{req.inspect}")
-
-      PackageProvider::RepositoryWorker.perform_async(
-        req.repo, req.commit_hash, req.checkout_mask, req.submodules?)
+      PackageProvider::RepositoryWorker.perform_async(req.to_json)
 
       false
     end

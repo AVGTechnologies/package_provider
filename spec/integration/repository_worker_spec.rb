@@ -18,8 +18,7 @@ describe 'Repository worker integration' do
   end
 
   after(:each) do
-    dir = PackageProvider::CachedRepository.cache_dir(
-      req.commit_hash, req.checkout_mask, req.submodules?)
+    dir = PackageProvider::CachedRepository.cache_dir(req)
 
     FileUtils.rm_rf(dir)
     FileUtils.rm_rf("#{dir}.package_part_ready")
@@ -30,11 +29,9 @@ describe 'Repository worker integration' do
   end
 
   it 'prepares repository caches' do
-    repository_worker.perform(
-      req.repo, req.commit_hash, req.checkout_mask, req.submodules?)
+    repository_worker.perform(req.to_json)
 
-    dir = PackageProvider::CachedRepository.cache_dir(
-      req.commit_hash, req.checkout_mask, req.submodules?)
+    dir = PackageProvider::CachedRepository.cache_dir(req)
 
     expect(Dir.exist?(dir)).to be true
     expect(Dir.exist?(File.join(dir, 'docs'))).to be true
