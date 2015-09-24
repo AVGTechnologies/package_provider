@@ -86,10 +86,7 @@ describe PackageProvider::CachedPackage do
     end
 
     it 'creates error file when one of repositories has error' do
-      path = PackageProvider::CachedRepository.cache_dir(
-        repository_request.commit_hash,
-        repository_request.checkout_mask,
-        repository_request.submodules?)
+      path = PackageProvider::CachedRepository.cache_dir(repository_request)
 
       File.open("#{path}.error", 'w+') do |f|
         f.puts('some error')

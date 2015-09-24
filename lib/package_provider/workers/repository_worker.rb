@@ -1,5 +1,7 @@
 require 'package_provider/repository_connection_pool'
 require 'package_provider/repository_config'
+# require 'package_provider/repository_request'
+
 # Package provider module
 module PackageProvider
   # class performing caching repository as background job
@@ -8,25 +10,23 @@ module PackageProvider
     sidekiq_options queue: :clone_repository,
                     retry: PackageProvider.config.sidekiq.clone_retry_on_error
 
-    def perform(repo, treeish, paths, use_submodules = false)
-      PackageProvider.logger.info(
-        "performing clonning: #{repo} #{treeish} #{paths} #{use_submodules}")
+    def perform(request_as_json)
+      request = PackageProvider::RepositoryRequest.from_json(request_as_json)
+      PackageProvider.logger.info("performing clonning: #{request.inspect}")
 
-      repo_config = PackageProvider::RepositoryConfig.find(repo)
-      c_pool = ReposPool.fetch(repo)
+      repo_config = PackageProvider::RepositoryConfig.find(request.repo)
+      c_pool = ReposPool.fetch(request.repo)
 
       PackageProvider.logger.debug("pool #{c_pool.inspect}")
 
       c_pool.with(timeout: repo_config[:timeout]) do |i|
         begin
-          i.cached_clone(treeish, paths, use_submodules)
+          i.cached_clone(request)
         rescue PackageProvider::CachedRepository::CloneInProgress
-          PackageProvider.logger.info(
-            "clone in progress: #{repo} #{treeish} #{paths} #{use_submodules}")
+          PackageProvider.logger.info("clone in progress: #{request.inspect}")
         end
       end
-      PackageProvider.logger.info(
-        "clonning done #{repo} {treeish} #{paths} #{use_submodules}")
+      PackageProvider.logger.info("clonning done #{request.inspect}")
     end
   end
 end

@@ -33,10 +33,8 @@ describe 'Packer worker integration' do
   end
 
   after(:each) do
-    dir = PackageProvider::CachedRepository.cache_dir(
-      req.commit_hash, req.checkout_mask, req.submodules?)
-    dir2 = PackageProvider::CachedRepository.cache_dir(
-      req2.commit_hash, req2.checkout_mask, req2.submodules?)
+    dir = PackageProvider::CachedRepository.cache_dir(req)
+    dir2 = PackageProvider::CachedRepository.cache_dir(req2)
 
     package_dir = PackageProvider::CachedPackage.package_path(
       package_request.request_hash)

@@ -1,5 +1,5 @@
 describe 'Cached repository integration' do
-  let(:fake_remote_repo_dir) do
+  let(:fake_repo_dir) do
     File.join(PackageProvider.root, 'spec', 'factories', 'testing-repo')
     # if ur developing with vagrant on windows machine you need to
     # copy test repo (spec/factories/test-repo) to your
@@ -7,13 +7,18 @@ describe 'Cached repository integration' do
     # just comment line 6 and uncomment line below
     # File.join('/var/tmp/factories', 'testing-repo')
   end
-  let(:repo) { PackageProvider::CachedRepository.new(fake_remote_repo_dir) }
-  let(:repo2) { PackageProvider::CachedRepository.new(fake_remote_repo_dir) }
-  let(:paths) { ['docs/**'] }
-  let(:dir) do
-    PackageProvider::CachedRepository.cache_dir(commit_hash, paths, false)
+  let(:repo) { PackageProvider::CachedRepository.new(fake_repo_dir) }
+  let(:repo2) { PackageProvider::CachedRepository.new(fake_repo_dir) }
+  let(:request) do
+    req = PackageProvider::RepositoryRequest.new(
+      fake_repo_dir, '9191ed1ad760d66e84ef2e6fc24ea85e70404638', nil)
+    req.add_folder_override('docs/**')
+    req
   end
-  let(:commit_hash) { '9191ed1ad760d66e84ef2e6fc24ea85e70404638' }
+
+  let(:dir) do
+    PackageProvider::CachedRepository.cache_dir(request)
+  end
 
   after(:each) do
     repo && repo.destroy
@@ -27,7 +32,7 @@ describe 'Cached repository integration' do
     end
 
     it 'creates cache' do
-      repo.cached_clone(commit_hash, paths)
+      repo.cached_clone(request)
 
       expect(Dir.exist?(dir)).to be true
       expect(File.exist?("#{dir}.package_part_ready")).to be true
@@ -35,11 +40,11 @@ describe 'Cached repository integration' do
     end
 
     it 'loads from existing cache' do
-      repo.cached_clone(commit_hash, paths)
+      repo.cached_clone(request)
 
       expect(repo).not_to receive(:clone).with(any_args)
 
-      repo.cached_clone(commit_hash, paths)
+      repo.cached_clone(request)
     end
 
     it 'handles multiple same requests at once' do
@@ -50,12 +55,12 @@ describe 'Cached repository integration' do
           Thread.pass
           sleep 3
         end
-        repo.cached_clone(commit_hash, paths)
+        repo.cached_clone(request)
       end
 
       Thread.pass until thread_ready
 
-      expect { repo2.cached_clone(commit_hash, paths) }.to raise_error(
+      expect { repo2.cached_clone(request) }.to raise_error(
         PackageProvider::CachedRepository::CloneInProgress)
       t.join
     end
@@ -63,7 +68,7 @@ describe 'Cached repository integration' do
     it 'removes .clone_lock file on Exception' do
       expect(repo).to receive(:clone).with(any_args) { fail RuntimeError }
 
-      expect { repo.cached_clone(commit_hash, paths) }.to raise_error(
+      expect { repo.cached_clone(request) }.to raise_error(
         RuntimeError)
 
       expect(File.exist?("#{dir}.package_part_ready")).to be false
@@ -75,7 +80,7 @@ describe 'Cached repository integration' do
         fail PackageProvider::Repository::CannotCloneRepo
       end
 
-      repo.cached_clone(commit_hash, paths)
+      repo.cached_clone(request)
 
       expect(File.exist?("#{dir}.package_part_ready")).to be true
       expect(File.exist?("#{dir}.error")).to be true
@@ -88,7 +93,7 @@ describe 'Cached repository integration' do
         fail PackageProvider::Repository::CannotFetchRepo
       end
 
-      repo.cached_clone(commit_hash, paths)
+      repo.cached_clone(request)
 
       expect(File.exist?("#{dir}.package_part_ready")).to be true
       expect(File.exist?("#{dir}.error")).to be true

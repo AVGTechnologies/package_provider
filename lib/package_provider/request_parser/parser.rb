@@ -31,16 +31,7 @@ module PackageProvider
 
     def parse_json(request)
       JSON.parse(request).inject(PackageRequest.new) do |s, req|
-        resp =
-          RepositoryRequest.new(req['repository'], req['commit'], req['branch'])
-
-        if req['folderOverride']
-          req['folderOverride'].map do |fo|
-            resp.add_folder_override(fo['source'], fo['destinationOverride'])
-          end
-        end
-
-        s << resp
+        s << RepositoryRequest.from_json(req.to_json)
       end
     end
 

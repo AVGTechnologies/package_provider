@@ -8,20 +8,25 @@ module PackageProvider
     class CloneInProgress < StandardError
     end
 
+    class RepoServantDoesNotMatch < StandardError
+    end
+
     class << self
-      def cached?(treeish, paths, use_submodules = false)
-        dir = cache_dir(treeish, paths, use_submodules)
+      def cached?(req)
+        dir = cache_dir(req)
         repo_ready?(dir)
       end
 
-      def in_progress?(treeish, paths, use_submodules = false)
-        dir = cache_dir(treeish, paths, use_submodules)
+      def in_progress?(req)
+        dir = cache_dir(req)
         File.exist?("#{dir}.clone_lock")
       end
 
-      def cache_dir(treeish, paths, use_submodules)
+      def cache_dir(req)
         @sha256 ||= Digest::SHA256.new
-        h = { treeish: treeish, paths: paths, submodule: use_submodules }
+        h = { treeish: req.commit_hash,
+              paths: req.checkout_mask,
+              submodule: req.submodules? }
 
         digest = @sha256.hexdigest h.to_json
 
@@ -34,8 +39,9 @@ module PackageProvider
       end
     end
 
-    def cached_clone(treeish, paths, use_submodules = false)
-      cached_dir = CachedRepository.cache_dir(treeish, paths, use_submodules)
+    def cached_clone(req)
+      fail RepoServantDoesNotMatch unless req.repo == @repo_url
+      cached_dir = CachedRepository.cache_dir(req)
       if CachedRepository.repo_ready?(cached_dir)
         Metriks.meter('packageprovider.repository.cached').mark
         Metriks.meter("packageprovider.repository.#{metriks_key}.cached").mark
@@ -43,23 +49,9 @@ module PackageProvider
       end
 
       locked_file = lock_repo(cached_dir)
-
-      begin
-        logger.info("Started clonning: #{treeish} #{paths.inspect} " \
-          "#{use_submodules} into #{cached_dir}")
-        clone(cached_dir, treeish, paths, use_submodules)
-      rescue PackageProvider::Repository::CannotCloneRepo => err
-        repo_error!(cached_dir, err)
-      rescue PackageProvider::Repository::CannotFetchRepo => err
-        repo_error!(cached_dir, err)
-      rescue => err
-        logger.error("Expeption when clonning: #{treeish} #{paths.inspect} " \
-          "#{use_submodules} into #{cached_dir} err: #{err}")
-        FileUtils.rm_rf(cached_dir)
-        raise
-      end
-
+      perform_and_handle_clone(req, cached_dir)
       repo_ready!(cached_dir)
+
       cached_dir
     ensure
       unlock_repo(locked_file)
@@ -100,6 +92,20 @@ module PackageProvider
 
     def repo_ready!(path)
       FileUtils.touch("#{path}.package_part_ready")
+    end
+
+    def perform_and_handle_clone(req, cached_dir)
+      logger.info("Started clonning: #{req.inspect}")
+      clone(cached_dir, req.commit_hash, req.checkout_mask, req.submodules?)
+    rescue PackageProvider::Repository::CannotCloneRepo => err
+      repo_error!(cached_dir, err)
+    rescue PackageProvider::Repository::CannotFetchRepo => err
+      repo_error!(cached_dir, err)
+    rescue => err
+      logger.error(
+        "Clone exception: #{req.inspect} into #{cached_dir} err: #{err}")
+      FileUtils.rm_rf(cached_dir)
+      raise
     end
   end
 end
