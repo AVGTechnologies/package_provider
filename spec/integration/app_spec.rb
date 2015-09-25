@@ -6,18 +6,24 @@ describe 'Application API' do
   include Rack::Test::Methods
 
   def app
-    App
+    PackageProvider::App.new
   end
 
   describe 'API' do
     let(:headers) do
       {
-        'HTTP_ACCEPT' => 'application/json'
+        'HTTP_ACCEPT' => 'application/json',
+        'CONTENT_TYPE' => 'application/json'
       }
     end
+    let(:request) do
+      PackageProvider::RepositoryRequest.new(
+        'repo', 'commit', nil)
+    end
+    let(:prefix) { PackageProvider.config.base_url }
 
     it 'responds to uptime' do
-      response = get '/uptime', {}, headers
+      response = get "#{prefix}/uptime", {}, headers
       expect(response.body).to eq(
         "Ready and waiting from #{PackageProvider.start_time}!")
     end
@@ -45,7 +51,7 @@ describe 'Application API' do
       end
 
       it 'reloads alias list' do
-        get '/api/v1/repositories/new_alias', {}, headers
+        get "#{prefix}repositories/new_alias", {}, headers
         expect(last_response.status).to eq 404
 
         File.open("#{path}/repository_aliases.yml", 'w+') do |f|
@@ -61,25 +67,33 @@ describe 'Application API' do
       end
 
       it 'gets all repositories aliases' do
-        response = get '/api/v1/repositories', {}, headers
+        response = get "#{prefix}/repositories", {}, headers
         expect(response.body).to eq PackageProvider::RepositoryAlias.all.to_json
       end
 
       it 'returns existing repository alias' do
-        response = get '/api/v1/repositories/fake_alias', {}, headers
+        response = get "#{prefix}/repositories/fake_alias", {}, headers
         expect(response.body).to eq(
           PackageProvider::RepositoryAlias.find('fake_alias').to_json)
       end
 
       it 'non existing repository alias' do
-        response = get '/api/v1/repositories/non_existing_alias', {}, headers
+        response = get "#{prefix}/repositories/non_existing_alias", {}, headers
         expect(response.status).to eq 404
       end
     end
 
     context 'package' do
-      it 'downloads package', :broken do
+      it 'schedules package preparation with json request'
+
+      it 'schedules package preparation with text request'
+
+      it 'responds to unprepared package' do
+        response = get "#{prefix}/packages/download/hash", {}, headers
+        expect(response.status).to eq 202
       end
+
+      it 'returns prepared package'
     end
   end
 end

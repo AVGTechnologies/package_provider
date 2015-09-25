@@ -20,13 +20,13 @@ module PackageProvider
       end
 
       def cache_dir(req)
-        File.join(
-          PackageProvider.config.repository_cache_root, req.fingerprint)
+        File.join(PackageProvider.config.repository_cache_root, req.fingerprint)
       end
 
       def repo_ready?(path)
-        Dir.exist?(path) && File.exist?("#{path}.package_part_ready") &&
-          !File.exist?("#{path}.clone_lock")
+        (Dir.exist?(path) && File.exist?("#{path}.package_part_ready")) ||
+          (File.exist?("#{path}.package_part_ready") &&
+          File.exist?("#{path}.error")) && !File.exist?("#{path}.clone_lock")
       end
     end
 
