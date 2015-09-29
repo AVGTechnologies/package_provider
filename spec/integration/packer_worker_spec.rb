@@ -36,8 +36,7 @@ describe 'Packer worker integration' do
     dir = PackageProvider::CachedRepository.cache_dir(req)
     dir2 = PackageProvider::CachedRepository.cache_dir(req2)
 
-    package_dir = PackageProvider::CachedPackage.package_path(
-      package_request.request_hash)
+    package_dir = PackageProvider::CachedPackage.package_path(package_request)
 
     FileUtils.rm_rf(dir)
     FileUtils.rm_rf("#{dir}.package_part_ready")
@@ -58,8 +57,7 @@ describe 'Packer worker integration' do
       packer_worker.perform(package_request.to_json)
     end
 
-    path = PackageProvider::CachedPackage.from_cache(
-      package_request.request_hash)
+    path = PackageProvider::CachedPackage.from_cache(package_request)
 
     expect(File.exist?(path)).to be true
 

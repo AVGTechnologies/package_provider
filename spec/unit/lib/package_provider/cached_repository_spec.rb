@@ -11,7 +11,7 @@ describe PackageProvider::CachedPackage do
   after(:each) do
     subject.destroy
   end
-  
+
   describe '#cached_clone' do
     it 'raises error when repo url does not match with requested repo' do
       expect { subject.cached_clone(request) }.to raise_error(

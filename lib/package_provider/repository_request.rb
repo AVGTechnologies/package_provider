@@ -1,4 +1,5 @@
 require 'multi_json'
+require 'digest'
 require 'package_provider/repository_alias'
 
 module PackageProvider
@@ -100,6 +101,15 @@ module PackageProvider
 
     def checkout_mask
       @folder_override.each_with_object([]) { |fo, s| s << fo.source }
+    end
+
+    def fingerprint
+      @sha256 ||= Digest::SHA256.new
+      h = { treeish: @commit_hash,
+            paths: checkout_mask,
+            submodule: submodules? }
+
+      @sha256.hexdigest h.to_json
     end
 
     def ==(other)
