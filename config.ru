@@ -1,6 +1,6 @@
 $LOAD_PATH << 'lib'
 
 require 'bundler/setup'
-require 'app'
+require 'package_provider/app'
 
-run App
+run PackageProvider::App.new

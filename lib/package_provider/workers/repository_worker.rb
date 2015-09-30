@@ -1,6 +1,6 @@
 require 'package_provider/repository_connection_pool'
 require 'package_provider/repository_config'
-# require 'package_provider/repository_request'
+require 'package_provider/repository_request'
 
 # Package provider module
 module PackageProvider

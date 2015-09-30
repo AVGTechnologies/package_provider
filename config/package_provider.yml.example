@@ -3,9 +3,7 @@ default: &defaults
   log_level: 0
   time_zone: :utc
   allowed_origin: '*'
-  bind: '0.0.0.0'
   base_url: '/api/v1'
-  show_exceptions: false
   package_cache_root: /var/tmp
   repository_cache_root: /var/tmp
   default_folder_override: ['automation', nil]

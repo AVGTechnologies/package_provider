@@ -39,7 +39,8 @@ describe PackageProvider::CachedPackage do
     it 'return archive on empty request' do
       subject.cache_package
 
-      pac_file = PackageProvider::CachedPackage.from_cache(package_request)
+      pac_file = PackageProvider::CachedPackage.from_cache(
+        package_request.fingerprint)
 
       expect(pac_file).to match(/package.zip\Z/)
       expect(File.exist?(pac_file)).to be true
@@ -95,7 +96,7 @@ describe PackageProvider::CachedPackage do
       subject3.cache_package
 
       err_file_path = PackageProvider::CachedPackage.package_path(
-        package_request2)
+        package_request2.fingerprint)
 
       expect(File.exist?(err_file_path)).to be true
     end

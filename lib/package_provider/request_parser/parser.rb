@@ -1,4 +1,5 @@
 require 'package_provider/package_request'
+require 'package_provider/repository_request'
 
 module PackageProvider
   # Class for parsing package requests

@@ -13,8 +13,8 @@ require 'package_provider/repository_connection_pool'
 require 'package_provider/request_parser/parser'
 require 'package_provider/workers/packer_worker'
 require 'package_provider/workers/repository_worker'
+require 'package_provider/app'
 require 'support/helpers'
-require 'app'
 
 PackageProvider.setup
 
