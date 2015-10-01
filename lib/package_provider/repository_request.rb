@@ -33,6 +33,11 @@ module PackageProvider
         source.tr!('\\', '/')
         destination.tr!('\\', '/') if destination
       end
+
+      def to_tsd
+        return @source unless @destination
+        "#{@source}>#{@destination}"
+      end
     end
 
     class << self
@@ -110,6 +115,17 @@ module PackageProvider
             submodule: submodules? }
 
       @sha256.hexdigest h.to_json
+    end
+
+    def to_tsd
+      result = "#{@repo}|"
+      result << "#{@branch}:#{@commit_hash}" if @branch && @commit_hash
+      result << @branch unless @commit_hash
+      result << @commit_hash unless @branch
+      unless @folder_override.empty?
+        result << "(#{@folder_override.map(&:to_tsd).join(',')})"
+      end
+      result
     end
 
     def ==(other)

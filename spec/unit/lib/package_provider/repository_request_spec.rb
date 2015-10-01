@@ -1,7 +1,7 @@
 describe PackageProvider::RepositoryRequest do
   let(:subject) do
     part = PackageProvider::RepositoryRequest.new(
-      'package_provider', 'fake_commit', nil)
+      'package_provider', nil, 'fake_branch')
 
     part.add_folder_override('b', 'a')
     part.add_folder_override('.gitmodules', nil)
@@ -27,6 +27,16 @@ describe PackageProvider::RepositoryRequest do
       'fake_repo', 'fake_commit', 'fake_branch')
   end
 
+  let(:subject4) do
+    PackageProvider::RepositoryRequest.new(
+      'fake_repo', nil, 'fake_branch')
+  end
+
+  let(:subject5) do
+    PackageProvider::RepositoryRequest.new(
+      'fake_repo', 'fake_commit', nil)
+  end
+
   describe '#submodules?' do
     it 'sets git modules true when .gitmodules is present' do
       expect(subject.submodules?).to be true
@@ -41,8 +51,8 @@ describe PackageProvider::RepositoryRequest do
       expect(subject.to_json).to eql(
         MultiJson.dump(
           repository: 'package_provider',
-          branch: nil,
-          commit: 'fake_commit',
+          branch: 'fake_branch',
+          commit: nil,
           folderOverride: [
             { source: 'b', destinationOverride: 'a' },
             { source: '.gitmodules', destinationOverride: nil },
@@ -77,6 +87,25 @@ describe PackageProvider::RepositoryRequest do
   describe '#checkout_mask' do
     it 'returns checkout mask' do
       expect(subject.checkout_mask).to eq(['b', '.gitmodules', 'a'])
+    end
+  end
+
+  describe '#to_tsd' do
+    it 'returns well formated simple request' do
+      expect(subject3.to_tsd)
+        .to eq('fake_repo|fake_branch:fake_commit')
+    end
+    it 'returns well formated request with branch' do
+      expect(subject4.to_tsd)
+        .to eq('fake_repo|fake_branch')
+    end
+    it 'returns well formated request with commit hash' do
+      expect(subject5.to_tsd)
+        .to eq('fake_repo|fake_commit')
+    end
+    it 'returns well formated request with folder override' do
+      expect(subject2.to_tsd)
+        .to eq('fake_repo|fake_commit(b>b,a,b,a>a)')
     end
   end
 end
