@@ -8,8 +8,18 @@ based on user specification. You can download specific
 folders from multiple repositories and combine them  
 into one zip file.
 
+Endpoints
+---------
+```
+GET  /api/v1/uptime
 
+GET /repositories
+POST  /repositories/reload
+GET /repositories/:alias
 
+POST  /packages/download
+GET /packages/download/:package_hash
+```
 Prerequisites for development on windows machine
 -----------------------------
 * Vagrant installed (https://www.vagrantup.com/) and added to PATH
