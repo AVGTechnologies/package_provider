@@ -13,12 +13,12 @@ Endpoints
 ```
 GET  /api/v1/uptime
 
-GET /repositories
-POST  /repositories/reload
-GET /repositories/:alias
+GET  /repositories
+POST /repositories/reload
+GET  /repositories/:alias
 
-POST  /packages/download
-GET /packages/download/:package_hash
+POST /packages/download
+GET  /packages/download/:package_hash
 ```
 Prerequisites for development on windows machine
 -----------------------------
