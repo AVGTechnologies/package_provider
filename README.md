@@ -24,7 +24,7 @@ GET  /packages/download/:package_hash
 Request for package
 -------------------
 
-Plan text format (make sure you set text/plain content type)
+Plain text format (make sure you set text/plain content type)
 ```
 repistory_url|branch:treeish(folder_name_in_repository>folder_name_in_archive)
 ```
