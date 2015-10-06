@@ -10,7 +10,7 @@ module PackageProvider
       attr_reader :source, :destination
 
       def initialize(source, destination = nil)
-        @source = source.strip
+        @source = source ? source.strip : nil
         @destination = destination ? destination.strip : nil
       end
 
@@ -34,16 +34,25 @@ module PackageProvider
         destination.tr!('\\', '/') if destination
       end
 
+      def valid?
+        # rubocop:disable DoubleNegation
+        !!source.try(:present?)
+        # rubocop:enable DoubleNegation
+      end
+
+      def errors
+        'Source is missing' unless valid?
+      end
+
       def to_tsd
-        return @source unless @destination
-        "#{@source}>#{@destination}"
+        return source unless destination
+        "#{source}>#{destination}"
       end
     end
 
     class << self
       def from_json(json)
         req = JSON.parse(json)
-
         res = RepositoryRequest.new(
           req['repository'], req['commit'], req['branch'])
 
@@ -60,7 +69,7 @@ module PackageProvider
     attr_reader :repo, :commit_hash, :branch, :folder_override
 
     def initialize(repo, commit_hash, branch)
-      @repo = repo.strip
+      @repo = repo ? repo.strip : nil
       @commit_hash = commit_hash ? commit_hash.downcase.strip : nil
       @branch = branch ? branch.strip : nil
       @folder_override = []
@@ -92,20 +101,37 @@ module PackageProvider
       MultiJson.dump(as_json, options)
     end
 
+    def valid?
+      # rubocop:disable DoubleNegation
+      !!(repo.try(:present?) && commit_hash.try(:present?) &&
+        folder_override.all?(&:valid?))
+      # rubocop:enable DoubleNegation
+    end
+
+    def errors
+      errors = []
+      errors << 'Repository is missing' unless repo
+      errors << 'Commit hash is missing' unless commit_hash
+      errors << folder_override.each_with_object([]) do |fo, s|
+        s << { source: fo.source, dest: fo.destination, errors: fo.errors }
+      end unless folder_override.empty?
+      errors
+    end
+
     def normalize!
-      if @folder_override.empty?
+      if folder_override.empty?
         add_folder_override(*PackageProvider.config.default_folder_override)
       end
 
-      found_alias = RepositoryAlias.find(repo.strip)
-      @repo = found_alias ? found_alias.url : @repo
+      found_alias = RepositoryAlias.find(repo)
+      @repo = found_alias ? found_alias.url : repo
 
       folder_override.map(&:normalize!)
       self
     end
 
     def checkout_mask
-      @folder_override.each_with_object([]) { |fo, s| s << fo.source }
+      folder_override.each_with_object([]) { |fo, s| s << fo.source }
     end
 
     def fingerprint
@@ -118,12 +144,12 @@ module PackageProvider
     end
 
     def to_tsd
-      result = "#{@repo}|"
-      result << "#{@branch}:#{@commit_hash}" if @branch && @commit_hash
-      result << @branch unless @commit_hash
-      result << @commit_hash unless @branch
-      unless @folder_override.empty?
-        result << "(#{@folder_override.map(&:to_tsd).join(',')})"
+      result = "#{repo}|"
+      result << "#{branch}:#{commit_hash}" if branch && commit_hash
+      result << branch.to_s unless commit_hash
+      result << commit_hash.to_s unless branch
+      unless folder_override.empty?
+        result << "(#{folder_override.map(&:to_tsd).join(',')})"
       end
       result
     end

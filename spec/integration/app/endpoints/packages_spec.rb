@@ -59,7 +59,7 @@ describe 'Application API packages' do
     end
 
     it 'schedules package preparation with text request' do
-      request = 'package_provider|master'
+      request = 'package_provider|master:treeish'
       Sidekiq::Testing.inline! do
         expect_any_instance_of(PackageProvider::PackerWorker)
           .to receive(:perform)
@@ -128,6 +128,87 @@ describe 'Application API packages' do
       repo_path = PackageProvider::CachedRepository.cache_dir(req)
       FileUtils.rm_rf(repo_path)
       FileUtils.rm_rf("#{repo_path}.package_part_ready")
+    end
+
+    context 'request processing' do
+      context 'application/json' do
+        context 'something is missing in request' do
+          it 'misses repository' do
+            req = PackageProvider::RepositoryRequest.new(
+              nil, 'commit_hash', 'branch')
+
+            response = post(
+              "#{prefix}/packages/download", [req].to_json, headers_json)
+            expect(response.status).to eq 400
+          end
+
+          it 'misses branch and commit hash' do
+            req = PackageProvider::RepositoryRequest.new('repo', nil, nil)
+
+            response = post(
+              "#{prefix}/packages/download", [req].to_json, headers_json)
+
+            expect(response.status).to eq 400
+          end
+
+          it 'misses source in folder override' do
+            req = PackageProvider::RepositoryRequest.new(
+              'repo', 'commit_hash', 'branch')
+            req.add_folder_override(nil)
+
+            response = post(
+              "#{prefix}/packages/download", [req].to_json, headers_json)
+
+            expect(response.status).to eq 400
+          end
+
+          it 'misses commit hash' do
+            req = PackageProvider::RepositoryRequest.new('repo', nil, 'branch')
+
+            response = post(
+              "#{prefix}/packages/download", [req].to_json, headers_json)
+
+            expect(response.status).to eq 400
+          end
+        end
+
+        it 'returns HTTP status 400 to unparsable json' do
+          response = post(
+            "#{prefix}/packages/download", { invalid: 'json' }, headers_json)
+
+          expect(response.status).to eq 400
+        end
+
+        it 'returns HTTP status 400 to bad request' do
+          response = post(
+            "#{prefix}/packages/download",
+            { repo: 'repo' }.to_json,
+            headers_json)
+
+          expect(response.status).to eq 400
+        end
+      end
+      context 'text/plain' do
+        context 'something is missing in request' do
+          it 'misses source in folder override' do
+            req = 'repo|branch:commit_hash(>dest)'
+
+            response = post(
+              "#{prefix}/packages/download", req, headers_plain_text)
+
+            expect(response.status).to eq 400
+          end
+
+          it 'misses commit hash' do
+            req = 'repo|branch'
+
+            response = post(
+              "#{prefix}/packages/download", req, headers_plain_text)
+
+            expect(response.status).to eq 400
+          end
+        end
+      end
     end
   end
 end
