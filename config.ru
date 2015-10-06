@@ -2,5 +2,8 @@ $LOAD_PATH << 'lib'
 
 require 'bundler/setup'
 require 'package_provider/app'
+require 'sidekiq/web'
 
-run PackageProvider::App.new
+run Rack::URLMap.new(
+  '/' => PackageProvider::App.new,
+  '/sidekiq' => Sidekiq::Web)
