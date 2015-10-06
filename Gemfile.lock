@@ -178,7 +178,7 @@ DEPENDENCIES
   sidekiq (~> 3.5)
   sinatra (~> 1.4)
   sinatra-contrib (~> 1.4)
-  unicorn
+  unicorn (~> 4.9)
 
 BUNDLED WITH
    1.10.6
