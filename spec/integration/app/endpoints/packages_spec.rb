@@ -94,14 +94,14 @@ describe 'Application API packages' do
       path = PackageProvider::CachedPackage.package_path(request.fingerprint)
       FileUtils.mkdir_p(path)
       FileUtils.touch(File.join(path, 'package.zip'))
-      FileUtils.touch("#{path}.package_ready")
+      FileUtils.touch(path + PackageProvider::CachedPackage::PACKAGE_READY)
 
       response = get(
         "#{prefix}/packages/download/#{request.fingerprint}", {}, headers_json)
 
       expect(response.status).to eq 200
       FileUtils.rm_rf(path)
-      FileUtils.rm_rf("#{path}.package_ready")
+      FileUtils.rm_rf(path + PackageProvider::CachedPackage::PACKAGE_READY)
     end
 
     it 'creates and returns package' do
@@ -124,10 +124,11 @@ describe 'Application API packages' do
 
       path = PackageProvider::CachedPackage.package_path(request.fingerprint)
       FileUtils.rm_rf(path)
-      FileUtils.rm_rf("#{path}.package_ready")
+      FileUtils.rm_rf(path + PackageProvider::CachedPackage::PACKAGE_READY)
       repo_path = PackageProvider::CachedRepository.cache_dir(req)
       FileUtils.rm_rf(repo_path)
-      FileUtils.rm_rf("#{repo_path}.package_part_ready")
+      FileUtils.rm_rf(
+        repo_path + PackageProvider::CachedRepository::PACKAGE_PART_READY)
     end
 
     context 'request processing' do
