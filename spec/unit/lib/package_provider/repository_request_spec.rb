@@ -37,6 +37,16 @@ describe PackageProvider::RepositoryRequest do
       'fake_repo', 'fake_commit', nil)
   end
 
+  let(:subject6) do
+    PackageProvider::RepositoryRequest.new(nil, 'fake_commit', nil)
+  end
+
+  let(:subject7) do
+    part = PackageProvider::RepositoryRequest.new('repo', 'fake_commit', nil)
+    part.add_folder_override(nil)
+    part
+  end
+
   describe '#submodules?' do
     it 'sets git modules true when .gitmodules is present' do
       expect(subject.submodules?).to be true
@@ -106,6 +116,34 @@ describe PackageProvider::RepositoryRequest do
     it 'returns well formated request with folder override' do
       expect(subject2.to_tsd)
         .to eq('fake_repo|fake_commit(b>b,a,b,a>a)')
+    end
+  end
+
+  describe '#valid?' do
+    it 'returns true if everthing is ok' do
+      expect(subject2.valid?).to be true
+    end
+    it 'returns false if repo is not specified' do
+      expect(subject6.valid?).to be false
+    end
+    it 'returns false if commit hash is not specified' do
+      expect(subject4.valid?).to be false
+    end
+    it 'returns false if folder override has no source' do
+      expect(subject7.valid?).to be false
+    end
+  end
+
+  describe '#errors' do
+    it 'returns error if repo is missing' do
+      expect(subject6.errors).to eq(['Repository is missing'])
+    end
+    it 'returns error if commit hash is missing' do
+      expect(subject4.errors).to eq(['Commit hash is missing'])
+    end
+    it 'returns error if folder override has no source' do
+      expect(subject7.errors)
+        .to eq([[{ source: nil, dest: nil, errors: 'Source is missing' }]])
     end
   end
 end

@@ -12,6 +12,8 @@ module PackageProvider
           package_request = parse_request(request)
           halt 400, { message: 'Unknown format' }.to_json unless package_request
 
+          halt 400, package_request.errors.to_json unless package_request.valid?
+
           package_request.normalize!
 
           unless PackageProvider::CachedPackage.package_ready?(package_request)
@@ -38,6 +40,8 @@ module PackageProvider
           elsif request.content_type == 'text/plain'
             return PackageProvider::Parser.new.parse(request.body.read)
           end
+        rescue
+          halt 400, { message: 'Unable to process request.' }.to_json
         end
       end
     end
