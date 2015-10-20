@@ -8,22 +8,38 @@ module PackageProvider
       @repos = {}
     end
 
-    def fetch(repo)
-      repo_config = PackageProvider::RepositoryConfig.find(repo)
-      @repos[repo] ||= ConnectionPool.new(
+    def fetch(req)
+      repo_config = PackageProvider::RepositoryConfig.find(req.repo)
+      @repos[req.repo] ||= ConnectionPool.new(
         size: repo_config[:pool_size],
         timeout: repo_config[:timeout]
       ) do
-        PackageProvider::CachedRepository.new(
-          repo,
-          repo_config[:cache_dir]
-        )
+        begin
+          PackageProvider::CachedRepository.new(
+            req.repo,
+            repo_config[:cache_dir]
+          )
+        rescue PackageProvider::Repository::CannotInitRepo
+          write_repo_error(
+            req, 'Cannot clone repo - check your repo url or server')
+        rescue => err
+          write_repo_error(
+            req, "Cannot clone repo: #{err}")
+          raise
+        end
       end
     end
 
     def destroy
       @repos.each { |_key, value| value.shutdown(&:destroy) }
       @repos = {}
+    end
+
+    def write_repo_error(req, message)
+      path = PackageProvider::CachedRepository.cache_dir(req)
+      File.open(path + PackageProvider::CachedRepository::ERROR, 'w+') do |f|
+        f.puts(message)
+      end
     end
   end
 end
