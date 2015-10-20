@@ -21,7 +21,7 @@ describe 'Repository worker integration' do
     dir = PackageProvider::CachedRepository.cache_dir(req)
 
     FileUtils.rm_rf(dir)
-    FileUtils.rm_rf("#{dir}.package_part_ready")
+    FileUtils.rm_rf(dir + PackageProvider::CachedRepository::PACKAGE_PART_READY)
   end
 
   after(:all) do

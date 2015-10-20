@@ -40,13 +40,14 @@ describe 'Packer worker integration' do
       package_request.fingerprint)
 
     FileUtils.rm_rf(dir)
-    FileUtils.rm_rf("#{dir}.package_part_ready")
+    FileUtils.rm_rf(dir + PackageProvider::CachedRepository::PACKAGE_PART_READY)
 
     FileUtils.rm_rf(dir2)
-    FileUtils.rm_rf("#{dir2}.package_part_ready")
+    FileUtils.rm_rf(
+      dir2 + PackageProvider::CachedRepository::PACKAGE_PART_READY)
 
     FileUtils.rm_rf(package_dir)
-    FileUtils.rm_rf("#{package_dir}.package_ready")
+    FileUtils.rm_rf(package_dir + PackageProvider::CachedPackage::PACKAGE_READY)
   end
 
   after(:all) do
