@@ -35,7 +35,8 @@ module PackageProvider
 
       def errors(package_request_or_fingerprint)
         fp = package_request_fingerprint(package_request_or_fingerprint)
-        File.read(file_path) if File.exist?(package_path(fp) + ERROR)
+        return unless File.exist?(package_path(fp) + ERROR)
+        File.read(package_path(fp) + ERROR)
       end
 
       private

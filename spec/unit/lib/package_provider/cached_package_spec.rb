@@ -108,4 +108,21 @@ describe PackageProvider::CachedPackage do
       expect(File.exist?(err_file_path)).to be true
     end
   end
+
+  describe '::errors' do
+    it 'returns nil if no error present' do
+      subject.cache_package
+      expect(PackageProvider::CachedPackage.errors(package_request)).to be nil
+    end
+    it 'return error message if error is present' do
+      subject.cache_package
+
+      path = PackageProvider::CachedPackage.package_path(package_request)
+      path << PackageProvider::CachedPackage::ERROR
+      FileUtils.touch(path)
+
+      expect(PackageProvider::CachedPackage.errors(package_request))
+        .not_to be nil
+    end
+  end
 end
