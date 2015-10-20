@@ -64,13 +64,17 @@ module PackageProvider
 
     def cache_package
       lock_package
-      return if File.exist?(@path + PACKAGE_READY)
+      if File.exist?(@path + PACKAGE_READY)
+        Metriks.meter('packageprovider.package.cached').mark
+        return
+      end
       begin
         FileUtils.mkdir_p(@path)
         pack
         package_ready!
       rescue => err
         PackageProvider.logger.error("Create package failed: #{err}")
+        Metriks.meter('packageprovider.package.error').mark
         FileUtils.rm_rf(@path)
       end
     ensure

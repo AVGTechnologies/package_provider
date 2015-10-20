@@ -29,7 +29,10 @@ module PackageProvider
 
           result = PackageProvider::CachedPackage.from_cache(
             params['package_hash'])
-          return send_file(result, type: 'application/zip') if result
+          if result
+            Metriks.meter('packageprovider.package.downloaded').mark
+            return send_file(result, type: 'application/zip')
+          end
 
           halt 202, { message: 'Package is being prepared' }.to_json
         end
