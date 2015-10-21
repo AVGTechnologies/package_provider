@@ -16,7 +16,7 @@ module PackageProvider
         "performing clonning: #{request.to_tsd} #{request.fingerprint}")
 
       repo_config = PackageProvider::RepositoryConfig.find(request.repo)
-      c_pool = ReposPool.fetch(request.repo)
+      c_pool = ReposPool.fetch(request)
 
       PackageProvider.logger.debug("pool #{c_pool.inspect}")
 

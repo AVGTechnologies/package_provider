@@ -8,6 +8,9 @@ describe PackageProvider::RepositoryConnectionPool do
   repo_url = 'git@github.com:AVGTechnologies/package_provider.git'
 
   let(:subject) { PackageProvider::RepositoryConnectionPool.new }
+  let(:request) do
+    PackageProvider::RepositoryRequest.new(repo_url, nil, 'fake_branch')
+  end
 
   describe '#fetch' do
     before(:all) do
@@ -27,14 +30,14 @@ describe PackageProvider::RepositoryConnectionPool do
     end
 
     it 'returns same instance of ConnectionPool for same repository request' do
-      repo = subject.fetch(repo_url)
-      repo2 = subject.fetch(repo_url)
+      repo = subject.fetch(request)
+      repo2 = subject.fetch(request)
 
       expect(repo).to eq(repo2)
     end
 
     it 'returns instance of ConnectionPool' do
-      repo = subject.fetch(repo_url)
+      repo = subject.fetch(request)
 
       expect(repo).to be_an_instance_of(ConnectionPool)
     end
