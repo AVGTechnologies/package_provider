@@ -6,7 +6,7 @@ default: &defaults
   base_url: '/api/v1'
   package_cache_root: /var/tmp
   repository_cache_root: /var/tmp
-  default_folder_override: ['automation', nil]
+  default_folder_override: ['automation', ]
   sidekiq:
     packer_reschedule_time: 15
     packer_retry_on_error: false
