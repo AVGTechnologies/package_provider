@@ -22,9 +22,8 @@ module PackageProvider
             )
           rescue PackageProvider::Repository::CannotInitRepo
             write_repo_error(
-              req,
-              'Cannot clone repo - check your repo url or server availability')
-            PackageProvider.logger.info("Request #{req.to_tsd} failed to clone")
+              req, 'Cannot clone repo: check repo url or server availability')
+            raise
           rescue => err
             write_repo_error(req, "Cannot clone repo: #{err}")
             raise
@@ -47,6 +46,8 @@ module PackageProvider
       File.open(path + PackageProvider::CachedRepository::ERROR, 'w+') do |f|
         f.puts(message)
       end
+      FileUtils.touch(
+        path + PackageProvider::CachedRepository::PACKAGE_PART_READY)
     end
   end
 end
