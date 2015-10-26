@@ -10,29 +10,23 @@ module PackageProvider
 
     def fetch(req)
       repo_config = PackageProvider::RepositoryConfig.find(req.repo)
-      begin
-        @repos[req.repo] ||= ConnectionPool.new(
-          size: repo_config[:pool_size],
-          timeout: repo_config[:timeout]
-        ) do
-          begin
-            PackageProvider::CachedRepository.new(
-              req.repo,
-              repo_config[:cache_dir]
-            )
-          rescue PackageProvider::Repository::CannotInitRepo
-            write_repo_error(
-              req, 'Cannot clone repo: check repo url or server availability')
-            raise
-          rescue => err
-            write_repo_error(req, "Cannot clone repo: #{err}")
-            raise
-          end
+      @repos[req.repo] ||= ConnectionPool.new(
+        size: repo_config[:pool_size],
+        timeout: repo_config[:timeout]
+      ) do
+        begin
+          PackageProvider::CachedRepository.new(
+            req.repo,
+            repo_config[:cache_dir]
+          )
+        rescue PackageProvider::Repository::CannotInitRepo
+          write_repo_error(
+            req, 'Cannot clone repo: check repo url or server availability')
+          raise
+        rescue => err
+          write_repo_error(req, "Cannot clone repo: #{err}")
+          raise
         end
-      rescue Timeout::Error
-        write_repo_error(
-          req, "Repo failed to initialize in #{repo_config[:timeout]} seconds")
-        raise
       end
     end
 
