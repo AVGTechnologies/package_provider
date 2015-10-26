@@ -126,6 +126,8 @@ module PackageProvider
       found_alias = RepositoryAlias.find(repo)
       @repo = found_alias ? found_alias.url : repo
 
+      @repo.sub!(%r{\A(?!ssh://)(.*)@}, 'ssh://\1@')
+
       folder_override.map(&:normalize!)
       self
     end

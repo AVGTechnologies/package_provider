@@ -28,13 +28,11 @@ describe PackageProvider::RepositoryRequest do
   end
 
   let(:subject4) do
-    PackageProvider::RepositoryRequest.new(
-      'fake_repo', nil, 'fake_branch')
+    PackageProvider::RepositoryRequest.new('fake_repo', nil, 'fake_branch')
   end
 
   let(:subject5) do
-    PackageProvider::RepositoryRequest.new(
-      'fake_repo', 'fake_commit', nil)
+    PackageProvider::RepositoryRequest.new('fake_repo', 'fake_commit', nil)
   end
 
   let(:subject6) do
@@ -45,6 +43,21 @@ describe PackageProvider::RepositoryRequest do
     part = PackageProvider::RepositoryRequest.new('repo', 'fake_commit', nil)
     part.add_folder_override(nil)
     part
+  end
+
+  let(:subject8) do
+    PackageProvider::RepositoryRequest.new(
+      'git@github.com:AVGTechnologies/package_provider.git', 'commit', nil)
+  end
+
+  let(:subject9) do
+    PackageProvider::RepositoryRequest.new(
+      'ssh://git@github.com:AVGTechnologies/package_provider.git', 'cmt', nil)
+  end
+
+  let(:subject10) do
+    PackageProvider::RepositoryRequest.new(
+      'ssh://github.com:AVGTechnologies/package_provider.git', 'commit', nil)
   end
 
   describe '#submodules?' do
@@ -91,6 +104,30 @@ describe PackageProvider::RepositoryRequest do
       expect(subject.repo).to eq(
         PackageProvider::RepositoryAlias.find('package_provider').url
       )
+    end
+
+    it 'adds ssh:// prefix' do
+      subject8.normalize!
+      expect(subject8.repo).to eq(
+        'ssh://git@github.com:AVGTechnologies/package_provider.git')
+    end
+
+    it 'doesnt adds ssh:// prefix for other formats' do
+      repo = subject4.repo
+      subject4.normalize!
+      expect(subject4.repo).to eq(repo)
+    end
+
+    it 'doesnt adds ssh:// prefix if present' do
+      repo = subject9.repo
+      subject9.normalize!
+      expect(subject9.repo).to eq(repo)
+    end
+
+    it 'doesnt adds ssh:// prefix if username not present' do
+      repo = subject10.repo
+      subject10.normalize!
+      expect(subject10.repo).to eq(repo)
     end
   end
 
