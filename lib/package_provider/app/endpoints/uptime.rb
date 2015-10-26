@@ -29,7 +29,7 @@ module PackageProvider
         end
 
         def sidekiq_queues_status
-          { RetrySet:  Sidekiq::RetrySet.new.size,
+          { RetrySet: Sidekiq::RetrySet.new.size,
             ScheduledSet: Sidekiq::ScheduledSet.new.size
           }
         end

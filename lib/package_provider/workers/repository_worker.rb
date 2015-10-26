@@ -15,12 +15,11 @@ module PackageProvider
       PackageProvider.logger.info(
         "performing clonning: #{request.to_tsd} #{request.fingerprint}")
 
-      repo_config = PackageProvider::RepositoryConfig.find(request.repo)
       c_pool = ReposPool.fetch(request)
 
       PackageProvider.logger.debug("pool #{c_pool.inspect}")
 
-      c_pool.with(timeout: repo_config[:timeout]) do |i|
+      c_pool.with do |i|
         begin
           i.cached_clone(request)
         rescue PackageProvider::CachedRepository::CloneInProgress
