@@ -38,9 +38,9 @@ module PackageProvider
         end
 
         def parse_request(request)
-          if request.content_type == 'application/json'
+          if request.media_type == 'application/json'
             return PackageProvider::Parser.new.parse_json(request.body.read)
-          elsif request.content_type == 'text/plain'
+          elsif request.media_type == 'text/plain'
             return PackageProvider::Parser.new.parse(request.body.read)
           end
         rescue
