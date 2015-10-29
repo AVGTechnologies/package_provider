@@ -15,18 +15,25 @@ module PackageProvider
       PackageProvider.logger.info(
         "performing clonning: #{request.to_tsd} #{request.fingerprint}")
 
-      c_pool = ReposPool.fetch(request)
+      begin
+        c_pool = ReposPool.fetch(request)
 
-      PackageProvider.logger.debug("pool #{c_pool.inspect}")
+        PackageProvider.logger.debug("pool #{c_pool.inspect}")
 
-      c_pool.with do |i|
-        begin
-          i.cached_clone(request)
-        rescue PackageProvider::CachedRepository::CloneInProgress
-          PackageProvider.logger.info("clone in progress: #{request.to_tsd}")
+        c_pool.with do |i|
+          begin
+            i.cached_clone(request)
+          rescue PackageProvider::CachedRepository::CloneInProgress
+            PackageProvider.logger.info("clone in progress: #{request.to_tsd}")
+          end
         end
+
+        PackageProvider.logger.info("clonning done #{request.to_tsd}")
+      rescue Timeout::Error
+        PackageProvider.logger.info(
+          "failed to obtain #{request.repo} connection from RepoPool")
+        Metriks.meter("packageprovider.pool.#{request.repo}.missing").mark
       end
-      PackageProvider.logger.info("clonning done #{request.to_tsd}")
     end
   end
 end
