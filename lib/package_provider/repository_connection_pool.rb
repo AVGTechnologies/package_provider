@@ -15,6 +15,9 @@ module PackageProvider
         timeout: repo_config[:timeout]
       ) do
         begin
+          PackageProvider.logger.debug(
+            "Creating instance of #{req.repo} from #{repo_config.inspect}")
+
           PackageProvider::CachedRepository.new(
             req.repo,
             repo_config[:cache_dir]
