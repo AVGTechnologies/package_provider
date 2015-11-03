@@ -19,10 +19,6 @@ module PackageProvider
         repo_ready?(cache_dir(req))
       end
 
-      def in_progress?(req)
-        File.exist?(cache_dir(req) + CLONE_LOCK)
-      end
-
       def cache_dir(req)
         File.join(PackageProvider.config.repository_cache_root, req.fingerprint)
       end

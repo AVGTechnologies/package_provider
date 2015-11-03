@@ -8,11 +8,6 @@ describe PackageProvider::RepositoryConfig do
   end
 
   describe '#perform' do
-    before(:each) do
-      allow(PackageProvider::CachedRepository)
-        .to receive(:in_progress?) { false }
-    end
-
     it 'packs package if all repositories are ready' do
       allow(PackageProvider::CachedRepository)
         .to receive(:cached?) { true }
