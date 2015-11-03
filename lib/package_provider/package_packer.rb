@@ -13,8 +13,8 @@ module PackageProvider
     end
 
     def add_folder(src_dir, folder_override)
-      dest = folder_override.destination || folder_override.source
-      @zip_generator.add_folder(src_dir, folder_override.source, dest)
+      @zip_generator.add_folder(
+        src_dir, folder_override.source, folder_override.destination)
     end
 
     def flush

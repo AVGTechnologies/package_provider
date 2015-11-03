@@ -119,7 +119,7 @@ describe 'Application API packages' do
       response = get(
         "#{prefix}/packages/download/#{request.fingerprint}", {}, headers_json)
 
-      expect(response.content_length).to eq 240
+      expect(response.content_length).to eq 220
       expect(response.status).to eq 200
 
       path = PackageProvider::CachedPackage.package_path(request.fingerprint)

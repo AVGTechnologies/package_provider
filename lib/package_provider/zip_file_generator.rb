@@ -1,4 +1,5 @@
 require 'zip'
+require 'pathname'
 
 module PackageProvider
   # Class for recursively generate a zip file from the contents of
@@ -28,8 +29,8 @@ module PackageProvider
     def write
       ::Zip::File.open(@output_file, ::Zip::File::CREATE) do |io|
         @folders.each do |input_dir, src, dest|
-          entries = Dir.entries(File.join(input_dir, src)) - %w(. ..)
-          write_entries File.join(input_dir, src), entries, dest, io
+          path = source(File.join(input_dir, src))
+          write_entries(path, entries(src, input_dir), dest, io)
         end
       end
 
@@ -41,9 +42,10 @@ module PackageProvider
     # A helper method to make the recursion work.
     def write_entries(input_dir, entries, path, io)
       entries.each do |e|
-        zip_file_path = File.join(path, e)
         disk_file_path = File.join(input_dir, e)
-        # puts "Deflating #{disk_file_path} into #{zip_file_path}"
+        zip_file_path = zip_file_path(path, e, input_dir)
+        PackageProvider.logger.debug(
+          "Deflating #{disk_file_path} into #{zip_file_path}")
 
         if File.directory? disk_file_path
           recursively_deflate_directory(disk_file_path, io, zip_file_path)
@@ -69,6 +71,27 @@ module PackageProvider
         # rubocop:enable AssignmentInCondition
         fr.close
       end
+    end
+
+    def entries(src, input_dir)
+      pn = Pathname.new(File.join(input_dir, src))
+      if pn.directory?
+        Dir.entries(File.join(input_dir, src)) - %w(. ..)
+      else
+        [pn.basename]
+      end
+    end
+
+    def source(src)
+      pn = Pathname.new(src)
+      return pn.dirname unless pn.directory?
+      src
+    end
+
+    def zip_file_path(path, entry, input_dir)
+      return entry.dup unless path
+      pn = Pathname.new(File.join(input_dir, path, entry))
+      pn.directory? ? path : File.join(path, entry)
     end
   end
 end
