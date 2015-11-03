@@ -50,7 +50,6 @@ module PackageProvider
 
     def request_ready_or_schedule(req)
       return true if PackageProvider::CachedRepository.cached?(req)
-      return true if PackageProvider::CachedRepository.in_progress?(req)
 
       PackageProvider.logger.debug("scheduling clonning #{req.to_tsd}")
 
