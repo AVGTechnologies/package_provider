@@ -43,8 +43,9 @@ module PackageProvider
           elsif request.media_type == 'text/plain'
             return PackageProvider::Parser.new.parse(request.body.read)
           end
-        rescue
-          halt 400, { message: 'Unable to process request.' }.to_json
+        rescue => err
+          halt 400,
+               { message: 'Unable to process request.', error: err }.to_json
         end
       end
     end

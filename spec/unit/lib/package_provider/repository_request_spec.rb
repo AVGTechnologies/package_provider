@@ -112,19 +112,19 @@ describe PackageProvider::RepositoryRequest do
         'ssh://git@github.com:AVGTechnologies/package_provider.git')
     end
 
-    it 'doesnt adds ssh:// prefix for other formats' do
+    it 'doesn\'t adds ssh:// prefix for other formats' do
       repo = subject4.repo
       subject4.normalize!
       expect(subject4.repo).to eq(repo)
     end
 
-    it 'doesnt adds ssh:// prefix if present' do
+    it 'doesn\'t adds ssh:// prefix if present' do
       repo = subject9.repo
       subject9.normalize!
       expect(subject9.repo).to eq(repo)
     end
 
-    it 'doesnt adds ssh:// prefix if username not present' do
+    it 'doesn\'t adds ssh:// prefix if username not present' do
       repo = subject10.repo
       subject10.normalize!
       expect(subject10.repo).to eq(repo)
