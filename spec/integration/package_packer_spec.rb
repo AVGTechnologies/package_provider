@@ -39,7 +39,27 @@ describe 'PackagePacker integration' do
 
       zip = Zip::File.open(package_path + '/package.zip')
 
-      expect(zip.find_entry('docs/test.md')).not_to be nil
+      expect(zip.find_entry('test.md')).not_to be nil
+    end
+
+    it 'adds overrided file to final archive' do
+      subject.add_folder(
+        test_path, ns::FolderOverride.new('lib/app.rb', 'docs'))
+      subject.flush
+
+      zip = Zip::File.open(package_path + '/package.zip')
+
+      expect(zip.find_entry('docs/app.rb')).not_to be nil
+      expect(zip.find_entry('lib/app.rb')).to be nil
+    end
+
+    it 'adds file to final archive' do
+      subject.add_folder(test_path, ns::FolderOverride.new('lib/app.rb', nil))
+      subject.flush
+
+      zip = Zip::File.open(package_path + '/package.zip')
+
+      expect(zip.find_entry('app.rb')).not_to be nil
     end
   end
 

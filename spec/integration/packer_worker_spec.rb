@@ -65,7 +65,8 @@ describe 'Packer worker integration' do
     expect(File.exist?(path)).to be true
 
     zip_file = Zip::File.open(path)
-    expect(zip_file.read('docs/doc1.txt')).not_to be nil
-    expect(zip_file.read('sources/source1.txt')).not_to be nil
+
+    expect(zip_file.read('doc1.txt')).not_to be nil
+    expect(zip_file.read('source1.txt')).not_to be nil
   end
 end
