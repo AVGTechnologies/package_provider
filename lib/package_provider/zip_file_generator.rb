@@ -56,7 +56,7 @@ module PackageProvider
     end
 
     def recursively_deflate_directory(disk_file_path, io, zip_file_path)
-      io.mkdir zip_file_path
+      io.mkdir(zip_file_path) unless io.find_entry(zip_file_path)
       subdir = Dir.entries(disk_file_path) - %w(. ..)
       write_entries disk_file_path, subdir, zip_file_path, io
     end
