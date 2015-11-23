@@ -31,7 +31,7 @@ module PackageProvider
     end
 
     def self.temp_prefix
-      @temp_prefix || 'pp_repo_'
+      @temp_prefix || "package_provider_repo_#{Process.pid}"
     end
     # rubocop:enable TrivialAccessors
 
