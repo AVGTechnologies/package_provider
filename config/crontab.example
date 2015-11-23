@@ -1,0 +1,4 @@
+SHELL=/bin/bash
+
+# package provider - fetch all repositories every day at midnight
+0 0 * * * ~/package_provider/bin/run_fetch_repositories.sh &>> /var/log/package-provider-cron-fetch.log
