@@ -25,7 +25,7 @@ module PackageProvider
 
         get '/download/:package_hash' do
           info = PackageProvider::CachedPackage.errors(params['package_hash'])
-          halt 404, info.to_json if info
+          halt 422, info.to_json if info
 
           result = PackageProvider::CachedPackage.from_cache(
             params['package_hash'])
@@ -34,7 +34,7 @@ module PackageProvider
             return send_file(result, type: 'application/zip')
           end
 
-          halt 202, { message: 'Package is being prepared' }.to_json
+          halt 204
         end
 
         def parse_request(request)

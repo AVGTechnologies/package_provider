@@ -80,7 +80,7 @@ describe 'Application API packages' do
 
     it 'responds to unprepared package' do
       response = get "#{prefix}/packages/download/hash", {}, headers_json
-      expect(response.status).to eq 202
+      expect(response.status).to eq 204
     end
 
     it 'returns prepared package' do
