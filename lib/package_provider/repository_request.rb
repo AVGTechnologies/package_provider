@@ -138,7 +138,8 @@ module PackageProvider
 
     def fingerprint
       @sha256 ||= Digest::SHA256.new
-      h = { treeish: @commit_hash,
+      h = { repository: repo,
+            treeish: commit_hash,
             paths: checkout_mask,
             submodule: submodules? }
 
