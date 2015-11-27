@@ -1,6 +1,7 @@
 require 'package_provider/repository_connection_pool'
 require 'package_provider/repository_config'
 require 'package_provider/repository_request'
+require 'sidekiq-unique-jobs'
 
 # Package provider module
 module PackageProvider
@@ -8,7 +9,9 @@ module PackageProvider
   class RepositoryWorker
     include Sidekiq::Worker
     sidekiq_options queue: :clone_repository,
-                    retry: PackageProvider.config.sidekiq.clone_retry_on_error
+                    retry: PackageProvider.config.sidekiq.clone_retry_on_error,
+                    unique: :until_executed,
+                    log_duplicate_payload: true
 
     def perform(request_as_json)
       request = PackageProvider::RepositoryRequest.from_json(request_as_json)
