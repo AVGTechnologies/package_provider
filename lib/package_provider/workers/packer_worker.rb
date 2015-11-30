@@ -23,7 +23,7 @@ module PackageProvider
 
       waiting_for_repo = false
       package_request.each do |req|
-        waiting_for_repo ||= !request_ready_or_schedule(req)
+        waiting_for_repo = true unless request_ready_or_schedule(req)
       end
 
       if waiting_for_repo
