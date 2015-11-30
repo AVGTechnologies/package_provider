@@ -5,3 +5,4 @@ require 'package_provider/workers/packer_worker'
 
 PackageProvider.setup
 PackageProvider.logger = Sidekiq.logger
+PackageProvider.logger.level = PackageProvider.config.log_level
