@@ -10,8 +10,8 @@ module PackageProvider
       attr_reader :source, :destination
 
       def initialize(source, destination = nil)
-        @source = source ? source.strip : nil
-        @destination = destination ? destination.strip : nil
+        @source = source.to_s == '' ? nil : source.strip
+        @destination = destination.to_s == '' ? nil : destination.strip
       end
 
       def as_json
@@ -53,6 +53,7 @@ module PackageProvider
     class << self
       def from_json(json)
         req = JSON.parse(json)
+
         res = RepositoryRequest.new(
           req['repository'], req['commit'], req['branch'])
 
