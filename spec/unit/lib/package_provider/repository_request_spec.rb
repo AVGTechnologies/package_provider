@@ -166,9 +166,6 @@ describe PackageProvider::RepositoryRequest do
     it 'returns false if commit hash is not specified' do
       expect(subject4.valid?).to be false
     end
-    it 'returns false if folder override has no source' do
-      expect(subject7.valid?).to be false
-    end
   end
 
   describe '#errors' do
@@ -178,14 +175,23 @@ describe PackageProvider::RepositoryRequest do
     it 'returns error if commit hash is missing' do
       expect(subject4.errors).to eq(['Commit hash is missing'])
     end
-    it 'returns error if folder override has no source' do
-      expect(subject7.errors)
-        .to eq([[{ source: nil, dest: nil, errors: 'Source is missing' }]])
-    end
   end
 end
 
 describe PackageProvider::RepositoryRequest::FolderOverride do
+  let(:subject) do
+    PackageProvider::RepositoryRequest::FolderOverride.new('source', 'dest')
+  end
+  let(:subject2) do
+    PackageProvider::RepositoryRequest::FolderOverride.new(nil, '/')
+  end
+  let(:subject3) do
+    PackageProvider::RepositoryRequest::FolderOverride.new('source', '/')
+  end
+  let(:subject4) do
+    PackageProvider::RepositoryRequest::FolderOverride.new('source', '\\')
+  end
+
   describe '#new' do
     it 'handles empty source' do
       fo = PackageProvider::RepositoryRequest::FolderOverride.new('','test')
@@ -205,6 +211,43 @@ describe PackageProvider::RepositoryRequest::FolderOverride do
     it 'handles nil destination' do
       fo = PackageProvider::RepositoryRequest::FolderOverride.new('test',nil)
       expect(fo.destination).to be nil
+    end
+  end
+
+  describe '#valid' do
+    it 'returns true if folder override is ok' do
+      expect(subject.valid?).to be true
+    end
+    it 'returns false if has no source and des starts with /' do
+      expect(subject2.valid?).to be false
+    end
+    it 'returns false if destination starts with /' do
+      expect(subject3.valid?).to be false
+    end
+    it 'returns false if destination starts with \\' do
+      expect(subject4.valid?).to be false
+    end
+  end
+
+  describe '#errors' do
+    it 'returns null if folder override is ok' do
+      expect(subject.errors)
+        .to be nil
+    end
+
+    it 'returns errors if no source and des starts with /' do
+      expect(subject2.errors)
+        .to eq(['Source is missing', 'Destination can\'t start with / or \\'])
+    end
+
+    it 'returns error if destination starts with /' do
+      expect(subject3.errors)
+        .to eq(['Destination can\'t start with / or \\'])
+    end
+
+    it 'returns error if destination starts with \\' do
+      expect(subject4.errors)
+        .to eq(['Destination can\'t start with / or \\'])
     end
   end
 end

@@ -10,8 +10,8 @@ module PackageProvider
       attr_reader :source, :destination
 
       def initialize(source, destination = nil)
-        @source = source.to_s == '' ? nil : source.strip
-        @destination = destination.to_s == '' ? nil : destination.strip
+        @source = source.to_s.empty? ? nil : source.strip
+        @destination = destination.to_s.empty? ? nil : destination.strip
       end
 
       def as_json
@@ -35,18 +35,31 @@ module PackageProvider
       end
 
       def valid?
-        # rubocop:disable DoubleNegation
-        !!source.try(:present?)
-        # rubocop:enable DoubleNegation
+        source_valid? && destination_valid?
       end
 
       def errors
-        'Source is missing' unless valid?
+        errors = []
+        errors << 'Source is missing' unless source_valid?
+        unless destination_valid?
+          errors << 'Destination can\'t start with / or \\'
+        end
+        errors unless errors.empty?
       end
 
       def to_tsd
         return source unless destination
         "#{source}>#{destination}"
+      end
+
+      private
+
+      def destination_valid?
+        !destination.to_s.start_with?('/', '\\')
+      end
+
+      def source_valid?
+        !source.to_s.empty?
       end
     end
 
