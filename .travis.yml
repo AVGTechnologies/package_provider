@@ -16,4 +16,6 @@ before_script: |
   mkdir -p /tmp/submodule_repo
   sudo  mount --bind $(pwd)/spec/factories/testing-submodule-repo /tmp/submodule_repo
 
-script: bundle exec rspec
+script:
+  - bundle exec rubocop
+  - bundle exec rspec

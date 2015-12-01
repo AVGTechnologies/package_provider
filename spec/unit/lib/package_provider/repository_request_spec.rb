@@ -188,22 +188,22 @@ end
 describe PackageProvider::RepositoryRequest::FolderOverride do
   describe '#new' do
     it 'handles empty source' do
-      fo = PackageProvider::RepositoryRequest::FolderOverride.new('','test')
+      fo = PackageProvider::RepositoryRequest::FolderOverride.new('', 'test')
       expect(fo.source).to be nil
     end
 
     it 'handles nil source' do
-      fo = PackageProvider::RepositoryRequest::FolderOverride.new(nil,'test')
+      fo = PackageProvider::RepositoryRequest::FolderOverride.new(nil, 'test')
       expect(fo.source).to be nil
     end
 
     it 'handles empty destination' do
-      fo = PackageProvider::RepositoryRequest::FolderOverride.new('test','')
+      fo = PackageProvider::RepositoryRequest::FolderOverride.new('test', '')
       expect(fo.destination).to be nil
     end
 
     it 'handles nil destination' do
-      fo = PackageProvider::RepositoryRequest::FolderOverride.new('test',nil)
+      fo = PackageProvider::RepositoryRequest::FolderOverride.new('test', nil)
       expect(fo.destination).to be nil
     end
   end

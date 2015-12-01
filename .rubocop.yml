@@ -1,6 +1,8 @@
 AllCops:
   Exclude:
     - 'scripts/benchmark.rb'
+    - 'vendor/**/*' # need for travis-ci
+    # http://caseywest.com/faster-ci-on-travis-and-docker-for-ruby-and-rails-and-rubocop/ 
 
 Style/EndOfLine:
   Enabled: false
