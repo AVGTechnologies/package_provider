@@ -76,6 +76,7 @@ module PackageProvider
       rescue => err
         PackageProvider.logger.error("Create package failed: #{err}")
         Metriks.meter('packageprovider.package.error').mark
+        package_error!(err)
         FileUtils.rm_rf(@path)
       end
     ensure
