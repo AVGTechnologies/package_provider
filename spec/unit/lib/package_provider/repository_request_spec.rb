@@ -230,24 +230,66 @@ describe PackageProvider::RepositoryRequest::FolderOverride do
   end
 
   describe '#errors' do
-    it 'returns null if folder override is ok' do
+    it 'returns empty array if folder override is ok' do
       expect(subject.errors)
-        .to be nil
+        .to eq []
     end
 
     it 'returns errors if no source and des starts with /' do
       expect(subject2.errors)
-        .to eq(['Source is missing', 'Destination can\'t start with / or \\'])
+        .to eq(['Source is missing', 'Destination can not start with \\ or /'])
     end
 
     it 'returns error if destination starts with /' do
       expect(subject3.errors)
-        .to eq(['Destination can\'t start with / or \\'])
+        .to eq(['Destination can not start with \\ or /'])
     end
 
     it 'returns error if destination starts with \\' do
       expect(subject4.errors)
-        .to eq(['Destination can\'t start with / or \\'])
+        .to eq(['Destination can not start with \\ or /'])
+    end
+
+    it 'returns error if source contains //' do
+      subject_with_bad_source =
+        PackageProvider::RepositoryRequest::FolderOverride.new('foo//bar')
+      expect(subject_with_bad_source.errors)
+        .to eq ['Source can not contain \\\\ or //']
+    end
+
+    it 'returns error if source contains \\\\' do
+      subject_with_bad_source =
+        PackageProvider::RepositoryRequest::FolderOverride.new('foo\\\\bar')
+      expect(subject_with_bad_source.errors)
+        .to eq ['Source can not contain \\\\ or //']
+    end
+
+    it 'returns error if destination contains //' do
+      subject_with_bad_source =
+        PackageProvider::RepositoryRequest::FolderOverride.new(
+          'foo',
+          'bar//baz')
+      expect(subject_with_bad_source.errors)
+        .to eq ['Destination can not contain \\\\ or //']
+    end
+
+    it 'returns error if destination contains \\\\' do
+      subject_with_bad_source =
+        PackageProvider::RepositoryRequest::FolderOverride.new(
+          'foo',
+          'bar\\\\baz')
+      expect(subject_with_bad_source.errors)
+        .to eq ['Destination can not contain \\\\ or //']
+    end
+
+    it 'returns all errors' do
+      subject_with_two_errors =
+        PackageProvider::RepositoryRequest::FolderOverride.new(
+          'foo//bar',
+          '/baz')
+      expect(subject_with_two_errors.errors)
+        .to eq ['Source can not contain \\\\ or //',
+                'Destination can not start with \\ or /']
     end
   end
 end
