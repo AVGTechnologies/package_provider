@@ -6,7 +6,7 @@ only_failed = nil
 OptionParser.new do |opts|
   opts.on('-d',
           '--days DAYS',
-          'number of days since file modification (-1 to disable)') { |d| days = d }
+          'days since file modification (-1 to disable)') { |d| days = d }
   opts.on('--only-failed',
           'clean only files created by failed caching') { |f| only_failed = f }
 end.parse!
