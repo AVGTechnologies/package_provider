@@ -16,13 +16,23 @@ module PackageProvider
     class InvalidRepoPath < ArgumentError
     end
 
-    class CannotInitRepo < StandardError
+    # general git process exception class
+    class GitError < StandardError
+      attr_reader :exit_code
+
+      def initialize(exit_code)
+        super
+        @exit_code = exit_code
+      end
     end
 
-    class CannotFetchRepo < StandardError
+    class CannotInitRepo < GitError
     end
 
-    class CannotCloneRepo < StandardError
+    class CannotFetchRepo < GitError
+    end
+
+    class CannotCloneRepo < GitError
     end
 
     # rubocop:disable TrivialAccessors
@@ -61,17 +71,18 @@ module PackageProvider
 
       begin
         FileUtils.mkdir_p(dest_dir)
-        fetch(treeish)
+        fetch!
 
         fill_sparse_checkout_file(paths)
 
-        command = [CLONE_SCRIPT]
-        command << '--use-submodules' if use_submodules
-        command.concat [repo_root, dest_dir, treeish]
+        command = compose_clone_command(dest_dir, treeish, use_submodules)
 
-        success, stderr = run_command(
+        status, stderr = run_command(
           { 'ENV' => PackageProvider.env }, command, change_pwd, 'clone')
-        fail CannotCloneRepo, stderr unless success
+
+        unless status.success?
+          fail CannotCloneRepo.new(status.exitstatus), stderr
+        end
 
         dest_dir
       rescue => err
@@ -81,17 +92,17 @@ module PackageProvider
       end
     end
 
-    # rubocop:disable UnusedMethodArgument
-    def fetch(treeish = nil)
-      fetch!
-    end
-    # rubocop:enable UnusedMethodArgument
-
     def destroy
       FileUtils.rm_rf(@repo_root)
     end
 
     private
+
+    def compose_clone_command(dest_dir, treeish, use_submodules)
+      command = [CLONE_SCRIPT]
+      command << '--use-submodules' if use_submodules
+      command.concat [repo_root, dest_dir, treeish]
+    end
 
     def metriks_key
       path = begin
@@ -110,19 +121,19 @@ module PackageProvider
     end
 
     def init_repo!(git_repo_local_cache_root)
-      success, stderr = run_command(
+      status, stderr = run_command(
         { 'ENV' => PackageProvider.env },
         [INIT_SCRIPT, repo_url, git_repo_local_cache_root || ''],
         change_pwd,
         'init_repo'
       )
-      fail CannotInitRepo, stderr unless success
+      fail CannotInitRepo.new(status.exitstatus), stderr unless status.success?
     end
 
     def fetch!
-      success, stderr = run_command(
+      status, stderr = run_command(
         {}, ['git', 'fetch', '--all'], change_pwd, 'fetch')
-      fail CannotFetchRepo, stderr unless success
+      fail CannotFetchRepo.new(status.exitstatus), stderr unless status.success?
     end
 
     def fill_sparse_checkout_file(paths)
@@ -153,7 +164,7 @@ module PackageProvider
         Metriks.meter(
           "packageprovider.repository.#{operation}.#{metriks_key}.error").mark
       end
-      [s.success?, e]
+      [s, e]
     end
 
     def log_result(std, operation, params, result)

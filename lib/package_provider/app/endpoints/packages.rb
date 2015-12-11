@@ -25,7 +25,7 @@ module PackageProvider
 
         get '/download/:package_hash' do
           info = PackageProvider::CachedPackage.errors(params['package_hash'])
-          halt 422, info.to_json if info
+          halt 422, info if info
 
           result = PackageProvider::CachedPackage.from_cache(
             params['package_hash'])

@@ -51,6 +51,8 @@ describe PackageProvider::RepositoryConnectionPool do
 
       status = double(:status)
       expect(status).to receive(:success?).twice.and_return(false)
+      expect(status).to receive(:exitstatus).once.and_return(128)
+
       expect(Open3).to(
         receive(:capture3)
         .with({ 'ENV' => PackageProvider.env }, /.*init_repo.sh/, any_args)
