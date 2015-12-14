@@ -69,6 +69,15 @@ module PackageProvider
       raise CloneInProgress
     end
 
+    def handle_clone_error(cached_dir, error)
+      if error.exit_code == 128
+        error.message.prepend(
+          'Some requested folders do not exist or commit hash does not exist.')
+      end
+
+      repo_error!(cached_dir, error.message)
+    end
+
     def repo_error!(path, message)
       File.open(path + ERROR, 'w+') do |f|
         f.puts(message)
@@ -90,7 +99,7 @@ module PackageProvider
       logger.info("Started clonning: #{req.inspect}")
       clone(cached_dir, req.commit_hash, req.checkout_mask, req.submodules?)
     rescue PackageProvider::Repository::CannotCloneRepo => err
-      repo_error!(cached_dir, err)
+      handle_clone_error(cached_dir, err)
     rescue PackageProvider::Repository::CannotFetchRepo => err
       repo_error!(cached_dir, err)
     rescue => err

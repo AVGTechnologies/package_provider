@@ -119,7 +119,9 @@ describe PackageProvider::CachedPackage do
 
       path = PackageProvider::CachedPackage.package_path(package_request)
       path << PackageProvider::CachedPackage::ERROR
-      FileUtils.touch(path)
+
+      data = { repository: 'repo', error: 'error' }
+      File.open(path, 'w+') { |f| f.puts(data.to_json) }
 
       expect(PackageProvider::CachedPackage.errors(package_request))
         .not_to be nil

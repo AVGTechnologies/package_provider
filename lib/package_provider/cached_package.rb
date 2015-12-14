@@ -91,19 +91,20 @@ module PackageProvider
 
     def pack
       packer = PackageProvider::PackagePacker.new(@path)
-      error = ''
+      errors = []
       @package_request.each do |req|
         checkout_dir = PackageProvider::CachedRepository.cache_dir(req)
 
-        error += load_error(checkout_dir, req)
-        next if error.present?
+        error = load_repo_error(checkout_dir, req)
+        errors << error if error
+        next unless errors.empty?
 
         req.folder_override.each do |fo|
           packer.add_folder(checkout_dir, fo)
         end
       end
 
-      error.empty? ? packer.flush : package_error!(error)
+      errors.empty? ? packer.flush : package_error!(errors)
     end
 
     def package_ready!
@@ -112,7 +113,7 @@ module PackageProvider
 
     def package_error!(message)
       File.open(@path + ERROR, 'w+') do |f|
-        f.puts(message)
+        f.puts(message.to_json)
       end
     end
 
@@ -136,9 +137,10 @@ module PackageProvider
       File.delete(@locked_package_file.path)
     end
 
-    def load_error(path, req)
-      file_path = path + ERROR
-      File.exist?(file_path) ? req.to_tsd + ":\n" + File.read(file_path) : ''
+    def load_repo_error(path, req)
+      file_path = path + PackageProvider::CachedRepository::ERROR
+      return unless File.exist?(file_path)
+      { repository: req.to_tsd, error: File.read(file_path) }
     end
   end
 end

@@ -79,7 +79,7 @@ describe 'Cached repository integration' do
 
     it 'creates error file on clone exception' do
       expect(repo).to receive(:clone).with(any_args) do
-        fail PackageProvider::Repository::CannotCloneRepo
+        fail PackageProvider::Repository::CannotCloneRepo.new(128), 'error'
       end
 
       repo.cached_clone(request)
@@ -92,7 +92,7 @@ describe 'Cached repository integration' do
 
     it 'creates error file on fetch exception' do
       expect(repo).to receive(:clone).with(any_args) do
-        fail PackageProvider::Repository::CannotFetchRepo
+        fail PackageProvider::Repository::CannotFetchRepo.new(128), 'error'
       end
 
       repo.cached_clone(request)

@@ -80,8 +80,9 @@ describe PackageProvider::Repository do
     it 'calls 3x Open3::capture' do
       status = double(:status)
       expect(status).to receive(:success?).twice.and_return(true)
+      allow(status).to receive(:exitstatus).and_return(0)
 
-      expect(repo).to receive(:fetch).with(treeish).once
+      expect(repo).to receive(:fetch!).once
 
       FileUtils.mkdir_p(File.join(repo.repo_root, '.git', 'info'))
 
@@ -104,22 +105,6 @@ describe PackageProvider::Repository do
       end.to raise_error(PackageProvider::Repository::InvalidRepoPath)
 
       FileUtils.rm_rf(dir_path)
-    end
-  end
-
-  describe '#fetch' do
-    it 'calls 2x Open3::capture3' do
-      status = double(:status)
-      expect(status).to receive(:success?).twice.and_return(true)
-
-      expect(Open3).to(
-        receive(:capture3)
-        .with({}, 'git', any_args)
-        .once
-        .and_return(['', '', status])
-      )
-
-      repo.fetch(nil)
     end
   end
 
