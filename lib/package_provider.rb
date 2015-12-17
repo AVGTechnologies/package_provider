@@ -79,6 +79,14 @@ module PackageProvider
     def setup_sidekiq
       Sidekiq.default_worker_options = { 'backtrace' => true } if
         config.log_level == Logger::DEBUG
+
+      Sidekiq.configure_server do |config|
+        config.redis = PackageProvider.config.redis
+      end
+
+      Sidekiq.configure_client do |config|
+        config.redis = PackageProvider.config.redis
+      end
     end
   end
 end
