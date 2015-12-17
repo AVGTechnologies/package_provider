@@ -17,6 +17,9 @@ default: &defaults
     host:
     port: 2003
     options: {}
+  redis:
+      url: redis://localhost:6379/0
+      namespace: package_provider
 
 production:
   <<: *defaults
