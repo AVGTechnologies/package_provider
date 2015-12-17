@@ -167,10 +167,16 @@ describe PackageProvider::Parser do
     end
     context 'fails' do
       it 'with invalid request' do
-        expect(parser.parse('dev/devel')).to eq([])
+        expect { parser.parse('dev/devel') }.to raise_error(
+          PackageProvider::Parser::ParsingError)
       end
-      it 'with invalid request with two branches', broken: true do
-        expect(parser.parse('dev/devel|devel, master')).to eq([])
+      it 'with invalid request with two branches' do
+        expect { parser.parse('dev/devel|devel, master') }.to raise_error(
+          PackageProvider::Parser::ParsingError)
+      end
+      it 'with invalid request with no source' do
+        expect { parser.parse('dev/devel|') }.to raise_error(
+          PackageProvider::Parser::ParsingError)
       end
     end
   end
