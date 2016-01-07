@@ -4,13 +4,19 @@ require 'package_provider/repository_request'
 module PackageProvider
   # Class for parsing package requests
   class Parser
+    class ParsingError < ArgumentError
+    end
+
     def logger
       PackageProvider.logger
     end
 
     def parse(request)
-      tsd_request2parts(request).inject(PackageRequest.new) do |s, package_part|
-        repo, source_and_folder_override = package_part.split('|', 2)
+      parts = tsd_request2parts(request)
+      fail ParsingError, 'nothing to process' if parts.empty?
+
+      parts.inject(PackageRequest.new) do |s, package_part|
+        repo, source_and_folder_override = check_part(package_part)
 
         if source_and_folder_override.sub!(/\((.*)\)$/, '')
           folder_override = Regexp.last_match[1]
@@ -38,11 +44,32 @@ module PackageProvider
 
     private
 
-    def tsd_request2parts(request)
-      regex_requests = Regexp.new(
-        '((?:[^,()]+\|[^,()]+)(?:\([^()]*\))?)\s*(?=,\s*|$)')
+    def replace_commas(request)
+      nested_level = 0
 
-      request.scan(regex_requests).map! { |x| x.first.strip }
+      request.each_char.with_index do |c, i|
+        case c
+        when '('
+          nested_level += 1
+        when ')'
+          nested_level -= 1
+        when ','
+          request[i] = ';' if nested_level == 0
+        end
+      end
+
+      request
+    end
+
+    def tsd_request2parts(request)
+      unless request.count('(') == request.count(')')
+        fail ParsingError, 'Incorect parenthness'
+      end
+
+      request = replace_commas(request)
+      splitted_parts = request.split(';')
+
+      splitted_parts.map!(&:strip)
     end
 
     def valid_commit_hash_format?(commit_hash)
@@ -58,6 +85,18 @@ module PackageProvider
       end
 
       [src_branch, src_commit_hash]
+    end
+
+    def check_part(package_part)
+      fail ParsingError, '| is missing' unless package_part.include?('|')
+
+      repo, source_and_folder_override = package_part.split('|', 2)
+
+      if source_and_folder_override.to_s.empty?
+        fail ParsingError, 'Source specification is missing'
+      end
+
+      [repo, source_and_folder_override]
     end
   end
 end
