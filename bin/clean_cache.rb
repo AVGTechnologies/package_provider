@@ -23,6 +23,8 @@ repository_cache_path = File.expand_path(config['repository_cache_root'])
 params = [cleaner_script_path]
 params << '--only-failed' if only_failed
 params << days
+
+puts "Cleaning script started #{Time.new.inspect}"
 puts "Cleaning package cache: #{package_cache_path}"
 packages_result = system(*params, package_cache_path)
 puts "Cleaning repository cache: #{repository_cache_path}"
