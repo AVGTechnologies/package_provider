@@ -11,6 +11,7 @@ default: &defaults
     packer_reschedule_time: 15
     packer_retry_on_error: false
     clone_retry_on_error: false
+    log_duplicate_payload: false
   zip:
     default_compression: <%= Zlib::BEST_COMPRESSION %>
   graphite:
