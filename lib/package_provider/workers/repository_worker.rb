@@ -11,7 +11,8 @@ module PackageProvider
     sidekiq_options queue: :clone_repository,
                     retry: PackageProvider.config.sidekiq.clone_retry_on_error,
                     unique: :until_executed,
-                    log_duplicate_payload: true
+                    log_duplicate_payload:
+                      PackageProvider.config.sidekiq.log_duplicate_payload
 
     def perform(request_as_json)
       request = PackageProvider::RepositoryRequest.from_json(request_as_json)
