@@ -4,8 +4,7 @@ SHELL=/bin/bash
 0 0 * * * ENV=production ~/package_provider/bin/run_fetch_repositories.sh &>> /var/log/package-provider-cron-fetch.log
 
 # package provider cache - delete files older than 7 days every week at midnight
-0 0 * * 0 ~/package_provider/bin/clean_cache.rb -days 7 &>> /var/log/package-provider-cron-clean-cache.log
+0 0 * * 0 ENV=production ~/package_provider/bin/clean_cache.rb -d 7 &>> /var/log/package-provider-cron-clean-cache.log
 
 # package provider cache - delete files created by failed caching every week as midnight
-0 0 * * 0 ~/package_provider/bin/clean_cache.rb --only-failed -days -1 &>> /var/log/package-provider-cron-clean-failed.log
-
+0 0 * * 0 ENV=production ~/package_provider/bin/clean_cache.rb --only-failed -d -1 &>> /var/log/package-provider-cron-clean-failed.log
