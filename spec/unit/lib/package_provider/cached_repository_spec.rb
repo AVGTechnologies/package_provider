@@ -69,4 +69,40 @@ describe PackageProvider::CachedRepository do
       FileUtils.rm_rf(path + repo_clone)
     end
   end
+
+  describe '::repo_ready?' do
+    it 'returns true if repo has error' do
+      FileUtils.rm_rf(path)
+      FileUtils.touch(path + repo_error)
+      FileUtils.touch(path + repo_ready)
+
+      expect(PackageProvider::CachedRepository.repo_ready?(path))
+        .to be true
+    end
+
+    it 'returns true if repo is prepared' do
+      FileUtils.touch(path + repo_ready)
+
+      expect(PackageProvider::CachedRepository.repo_ready?(path))
+        .to be true
+    end
+
+    it 'returns false if clonning is in progress' do
+      FileUtils.touch(path + repo_error)
+      FileUtils.touch(path + repo_ready)
+
+      FileUtils.touch(path + repo_clone)
+
+      expect(PackageProvider::CachedRepository.repo_ready?(path))
+        .to be false
+    end
+
+    it 'returns false if repo folder or err file is not present' do
+      FileUtils.rm_rf(path)
+      FileUtils.touch(path + repo_ready)
+
+      expect(PackageProvider::CachedRepository.repo_ready?(path))
+        .to be false
+    end
+  end
 end
