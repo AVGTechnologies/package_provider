@@ -24,21 +24,9 @@ module PackageProvider
       end
 
       def repo_ready?(path)
-        (repo_prepared?(path) || repo_error?(path)) && !clonning?(path)
-      end
-
-      private
-
-      def repo_prepared?(path)
-        Dir.exist?(path) && File.exist?(path + PACKAGE_PART_READY)
-      end
-
-      def repo_error?(path)
-        File.exist?(path + PACKAGE_PART_READY) && File.exist?(path + ERROR)
-      end
-
-      def clonning?(path)
-        File.exist?(path + CLONE_LOCK)
+        (Dir.exist?(path) && File.exist?(path + PACKAGE_PART_READY)) ||
+          (File.exist?(path + PACKAGE_PART_READY) &&
+           File.exist?(path + ERROR)) && !File.exist?(path + CLONE_LOCK)
       end
     end
 
@@ -52,7 +40,7 @@ module PackageProvider
       end
 
       locked_file = lock_repo(cached_dir)
-      return cached_dir if CachedRepository.repo_ready?(cached_dir)
+      return cached_dir if File.exist?(cached_dir + PACKAGE_PART_READY)
       perform_and_handle_clone(req, cached_dir)
       repo_ready!(cached_dir)
 
