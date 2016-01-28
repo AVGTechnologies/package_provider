@@ -5,6 +5,7 @@ if [ "$1" = "--only-failed" ]; then
     ONLY_FAILED=true
     shift
 fi
+
 DAYS=$1
 DIRECTORY=$2
 
@@ -38,31 +39,52 @@ is_directory() {
 
 main() {
     if ! is_directory "$DIRECTORY"; then
-	echo "The given path is not a directory: ${DIRECTORY}"
-	show_help
-	exit 1
-    fi 
+        echo "The given path is not a directory: ${DIRECTORY}"
+        show_help
+        exit 1
+    fi
 
     local find_command="find $DIRECTORY -mindepth 1 -maxdepth 1"
     if ! [ "$DAYS" -eq -1 ]; then
-	if ! is_number "$DAYS"; then
-	    echo "The DAYS argument must be greater or equal to -1."
-	    show_help
-	    exit 1
-	fi
-	find_command="$find_command -mtime +$DAYS"
+        if ! is_number "$DAYS"; then
+            echo "The DAYS argument must be greater or equal to -1."
+            show_help
+            exit 1
+        fi
+        find_command="$find_command -mtime +$DAYS"
     fi
-    
+
     if [ "$ONLY_FAILED" = true ]; then
-	readonly error_suffix=".error"
-	data_to_delete=$($find_command -name *$error_suffix \
-	    | sed 's/\(.*\).error$/\1*/')
+        echo 'only failed'
+        readonly error_suffix=".error"
+        data_to_delete=$($find_command -name *$error_suffix \
+        | sed 's/\(.*\).error$/\1*/' | sort)
     else
-	data_to_delete=$($find_command)
+      data_to_delete=$($find_command | sort)
     fi
-    
+
     if ! is_empty data_to_delete; then
-	rm -rfv $data_to_delete 	
+      for i in $(echo $data_to_delete ) ; do
+          echo "deleting $i"
+      done
+
+      StartDate=$(date +%s)
+      for i in $(echo $data_to_delete ) ; do
+          mv $i $(echo $i | sed "s|$|.to_delete|")
+      done
+      FinalDate=$(date +%s)
+      date -u -d "0 $FinalDate seconds - $StartDate seconds" +"moving took %H:%M:%S"
+
+      du $DIRECTORY/*to_delete --max-depth=0 | awk -e 'BEGIN{a=0;}{a = a + $1}END{print a/1024/1024 " GB will be deleted in total"}'
+
+      StartDate=$(date +%s)
+      for i in $(echo $data_to_delete) ; do
+          rm -rf "${i}.to_delete"
+      done
+      FinalDate=$(date +%s)
+      date -u -d "0 $FinalDate seconds - $StartDate seconds" +"deleting took %H:%M:%S"
     fi
 }
+
 main
+
