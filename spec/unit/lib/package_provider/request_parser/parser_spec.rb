@@ -46,6 +46,7 @@ describe PackageProvider::Parser do
     'dev|my_branch:7146b95092f07109bf97fd3554f25e6683de0796'\
     '(source_folder2>dest_folder2, my_desired_folder2)'
   end
+  let(:simple_request_with_shortened_commit_hash) { 'ddtf|9329696ea08' }
 
   describe '#tsd_request2parts' do
     context 'with single repo' do
@@ -164,6 +165,11 @@ describe PackageProvider::Parser do
       expect(
         parser.parse(two_requests_complete_override)
       ).to(eq([result, result2]))
+    end
+    it 'parses shortened commit hash as branch' do
+      expect(
+        parser.parse(simple_request_with_shortened_commit_hash)
+      ).to(eq([PackageProvider::RepositoryRequest.new('ddtf', nil, '9329696ea08')]))
     end
     context 'fails' do
       it 'with invalid request' do

@@ -35,20 +35,44 @@ module PackageProvider
     class CannotCloneRepo < GitError
     end
 
-    # rubocop:disable TrivialAccessors
-    def self.temp_prefix=(tp)
-      @temp_prefix = tp
-    end
+    class << self
+      def temp_prefix=(tp)
+        @temp_prefix_internal = tp
+      end
 
-    def self.temp_prefix
-      @temp_prefix || "package_provider_repo_#{Process.pid}"
+      def temp_prefix
+        @temp_prefix_internal || "package_provider_repo_#{Process.pid}"
+      end
+
+      def commit_hash(req)
+        fail ArgumentError, 'Missing branch' unless req.branch
+        logger = PackageProvider.logger
+        logger.info("Resolving commit hash for #{req.to_tsd}")
+
+        params = ['git', 'ls-remote', '--exit-code', req.repo, '-h', "refs/heads/#{req.branch}"]
+        std_out, std_err, status = Open3.capture3({}, *params, chdir: '/tmp')
+
+        if status.success?
+          logger.info("Commit hash for #{req.to_tsd}: #{std_out.split.first}")
+          return std_out.split.first
+        else
+          logger.error("Resolving commit hash failed! code: #{status.exitstatus} err: #{std_err}")
+
+          fail GitError, git_error_message(req.repo, req.branch, status.exitstatus)
+        end
+      end
+
+      private
+
+      def git_error_message(repo, branch, exit_code)
+        "Branch #{branch} not found" if exit_code == 2
+        "Unable to retrieve commit hash for #{repo}|#{branch}"
+      end
     end
-    # rubocop:enable TrivialAccessors
 
     def initialize(git_repo_url, git_repo_local_cache_root = nil)
       if git_repo_local_cache_root && !Dir.exist?(git_repo_local_cache_root)
-        fail InvalidRepoPath,
-             "Directory #{git_repo_local_cache_root.inspect} does not exists"
+        fail InvalidRepoPath, "Directory #{git_repo_local_cache_root.inspect} does not exists"
       end
 
       @repo_url = git_repo_url
@@ -77,8 +101,7 @@ module PackageProvider
 
         command = compose_clone_command(dest_dir, treeish, use_submodules)
 
-        status, stderr = run_command(
-          { 'ENV' => PackageProvider.env }, command, change_pwd, 'clone')
+        status, stderr = run_command({ 'ENV' => PackageProvider.env }, command, change_pwd, 'clone')
 
         unless status.success?
           fail CannotCloneRepo.new(status.exitstatus), stderr
@@ -131,8 +154,7 @@ module PackageProvider
     end
 
     def fetch!
-      status, stderr = run_command(
-        {}, ['git', 'fetch', '--all'], change_pwd, 'fetch')
+      status, stderr = run_command({}, ['git', 'fetch', '--all'], change_pwd, 'fetch')
       fail CannotFetchRepo.new(status.exitstatus), stderr unless status.success?
     end
 
@@ -157,12 +179,10 @@ module PackageProvider
       if s.success?
         log_result('stdout', operation, params, o)
         log_result('stderr', operation, params, e)
-        Metriks.timer(
-          "packageprovider.repository.#{operation}.#{metriks_key}").update(time)
+        Metriks.timer("packageprovider.repository.#{operation}.#{metriks_key}").update(time)
       else
         log_error(params, operation, o, e)
-        Metriks.meter(
-          "packageprovider.repository.#{operation}.#{metriks_key}.error").mark
+        Metriks.meter("packageprovider.repository.#{operation}.#{metriks_key}.error").mark
       end
       [s, e]
     end

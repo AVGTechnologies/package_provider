@@ -1,3 +1,4 @@
+require 'securerandom'
 require 'package_provider/app/endpoints/base'
 require 'package_provider/request_parser/parser'
 require 'package_provider/cached_package'
@@ -15,20 +16,18 @@ module PackageProvider
           halt 400, package_request.errors.to_json unless package_request.valid?
 
           package_request.normalize!
+          package_hash = SecureRandom.uuid
 
-          unless PackageProvider::CachedPackage.package_ready?(package_request)
-            PackageProvider::PackerWorker.perform_async(package_request.to_json)
-          end
+          PackageProvider::PackerWorker.perform_async(package_hash, package_request.to_json)
 
-          halt 202, { package_hash: "#{package_request.fingerprint}" }.to_json
+          halt 202, { package_hash: "#{package_hash}" }.to_json
         end
 
         get '/download/:package_hash' do
           info = PackageProvider::CachedPackage.errors(params['package_hash'])
           halt 422, info if info
 
-          result = PackageProvider::CachedPackage.from_cache(
-            params['package_hash'])
+          result = PackageProvider::CachedPackage.from_cache(params['package_hash'])
           if result
             Metriks.meter('packageprovider.package.downloaded').mark
             return send_file(result, type: 'application/zip')

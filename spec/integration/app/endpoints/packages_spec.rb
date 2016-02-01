@@ -44,15 +44,12 @@ describe 'Application API packages' do
 
     it 'schedules package preparation with json request' do
       request = PackageProvider::PackageRequest.new
-      request << PackageProvider::RepositoryRequest.new(
-        'repo', 'treeish', nil)
+      request << PackageProvider::RepositoryRequest.new('repo', 'treeish', nil)
 
       Sidekiq::Testing.inline! do
-        expect_any_instance_of(PackageProvider::PackerWorker)
-          .to receive(:perform)
+        expect_any_instance_of(PackageProvider::PackerWorker).to receive(:perform)
 
-        response = post(
-          "#{prefix}/packages/download", request.to_json, headers_json)
+        response = post("#{prefix}/packages/download", request.to_json, headers_json)
 
         expect(response.status).to eq 202
       end
@@ -61,19 +58,16 @@ describe 'Application API packages' do
     it 'schedules package preparation with text request' do
       request = 'package_provider|master:treeish'
       Sidekiq::Testing.inline! do
-        expect_any_instance_of(PackageProvider::PackerWorker)
-          .to receive(:perform)
+        expect_any_instance_of(PackageProvider::PackerWorker).to receive(:perform)
 
-        response = post(
-          "#{prefix}/packages/download", request, headers_plain_text)
+        response = post("#{prefix}/packages/download", request, headers_plain_text)
 
         expect(response.status).to eq 202
       end
     end
 
     it 'return error to unknown request' do
-      response = post(
-        "#{prefix}/packages/download", {}, headers_no_content_type)
+      response = post("#{prefix}/packages/download", {}, headers_no_content_type)
 
       expect(response.status).to eq 400
     end
@@ -91,13 +85,15 @@ describe 'Application API packages' do
       request = PackageProvider::PackageRequest.new
       request << req
 
-      path = PackageProvider::CachedPackage.package_path(request.fingerprint)
+      package_hash = 'abc'
+
+      path = PackageProvider::CachedPackage.package_directory(package_hash)
       FileUtils.mkdir_p(path)
       FileUtils.touch(File.join(path, 'package.zip'))
       FileUtils.touch(path + PackageProvider::CachedPackage::PACKAGE_READY)
 
       response = get(
-        "#{prefix}/packages/download/#{request.fingerprint}", {}, headers_json)
+        "#{prefix}/packages/download/#{package_hash}", {}, headers_json)
 
       expect(response.status).to eq 200
       FileUtils.rm_rf(path)
@@ -112,70 +108,89 @@ describe 'Application API packages' do
       request = PackageProvider::PackageRequest.new
       request << req
 
+      package_hash = nil
+
       Sidekiq::Testing.inline! do
         post("#{prefix}/packages/download", request.to_json, headers_json)
+        package_hash = JSON.parse(last_response.body)['package_hash']
       end
 
       response = get(
-        "#{prefix}/packages/download/#{request.fingerprint}", {}, headers_json)
+        "#{prefix}/packages/download/#{package_hash}", {}, headers_json)
 
       expect(response.content_length).to eq 220
       expect(response.status).to eq 200
 
-      path = PackageProvider::CachedPackage.package_path(request.fingerprint)
+      path = PackageProvider::CachedPackage.package_directory(package_hash)
       FileUtils.rm_rf(path)
       FileUtils.rm_rf(path + PackageProvider::CachedPackage::PACKAGE_READY)
       repo_path = PackageProvider::CachedRepository.cache_dir(req)
       FileUtils.rm_rf(repo_path)
-      FileUtils.rm_rf(
-        repo_path + PackageProvider::CachedRepository::PACKAGE_PART_READY)
+      FileUtils.rm_rf(repo_path + PackageProvider::CachedRepository::PACKAGE_PART_READY)
+    end
+
+    it 'returns different package hash to same request' do
+      req = PackageProvider::RepositoryRequest.new(
+        fake_repo_dir, '9191ed1ad760d66e84ef2e6fc24ea85e70404638', nil)
+      req.add_folder_override('docs')
+
+      request = PackageProvider::PackageRequest.new
+      request << req
+
+      package_hash = nil
+      package_hash2 = nil
+
+      Sidekiq::Testing.fake! do
+        post("#{prefix}/packages/download", request.to_json, headers_json)
+        package_hash = JSON.parse(last_response.body)['package_hash']
+      end
+
+      Sidekiq::Testing.fake! do
+        post("#{prefix}/packages/download", request.to_json, headers_json)
+        package_hash2 = JSON.parse(last_response.body)['package_hash']
+      end
+
+      expect(package_hash).not_to eq(package_hash2)
     end
 
     context 'request processing' do
       context 'application/json' do
         context 'something is missing in request' do
           it 'misses repository' do
-            req = PackageProvider::RepositoryRequest.new(
-              nil, 'commit_hash', 'branch')
+            req = PackageProvider::RepositoryRequest.new(nil, 'commit_hash', 'branch')
 
-            response = post(
-              "#{prefix}/packages/download", [req].to_json, headers_json)
+            response = post("#{prefix}/packages/download", [req].to_json, headers_json)
             expect(response.status).to eq 400
           end
 
           it 'misses branch and commit hash' do
             req = PackageProvider::RepositoryRequest.new('repo', nil, nil)
 
-            response = post(
-              "#{prefix}/packages/download", [req].to_json, headers_json)
+            response = post("#{prefix}/packages/download", [req].to_json, headers_json)
 
             expect(response.status).to eq 400
           end
 
           it 'misses source in folder override' do
-            req = PackageProvider::RepositoryRequest.new(
-              'repo', 'commit_hash', 'branch')
+            req = PackageProvider::RepositoryRequest.new('repo', 'commit_hash', 'branch')
             req.add_folder_override(nil)
 
-            response = post(
-              "#{prefix}/packages/download", [req].to_json, headers_json)
+            response = post("#{prefix}/packages/download", [req].to_json, headers_json)
 
             expect(response.status).to eq 400
           end
 
-          it 'misses commit hash' do
-            req = PackageProvider::RepositoryRequest.new('repo', nil, 'branch')
+          it 'misses commit hash and branch' do
+            req = PackageProvider::RepositoryRequest.new('repo', nil, nil)
 
-            response = post(
-              "#{prefix}/packages/download", [req].to_json, headers_json)
+            response = post("#{prefix}/packages/download", [req].to_json, headers_json)
 
             expect(response.status).to eq 400
           end
         end
 
         it 'returns HTTP status 400 to unparsable json' do
-          response = post(
-            "#{prefix}/packages/download", { invalid: 'json' }, headers_json)
+          response = post("#{prefix}/packages/download", { invalid: 'json' }, headers_json)
 
           expect(response.status).to eq 400
         end
@@ -194,17 +209,15 @@ describe 'Application API packages' do
           it 'misses source in folder override' do
             req = 'repo|branch:commit_hash(>dest)'
 
-            response = post(
-              "#{prefix}/packages/download", req, headers_plain_text)
+            response = post("#{prefix}/packages/download", req, headers_plain_text)
 
             expect(response.status).to eq 400
           end
 
-          it 'misses commit hash' do
-            req = 'repo|branch'
+          it 'misses commit hash and branch' do
+            req = 'repo|'
 
-            response = post(
-              "#{prefix}/packages/download", req, headers_plain_text)
+            response = post("#{prefix}/packages/download", req, headers_plain_text)
 
             expect(response.status).to eq 400
           end
