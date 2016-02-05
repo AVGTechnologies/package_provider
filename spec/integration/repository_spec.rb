@@ -18,19 +18,17 @@ describe 'Repository integration' do
 
   describe '#initialize' do
     it 'makes local copy' do
-      expect(
-        verify_git_repository(repo.repo_root)
-      ).to be true
+      expect(verify_git_repository(repo.repo_root)).to be true
     end
   end
 
   describe '#clone' do
-    let(:dest_dir) do
-      get_temp_dir_name(persist_folders_prefix)
-    end
+    let(:dest_dir) { get_temp_dir_name(persist_folders_prefix) }
+
     after(:each) do
       FileUtils.rm_rf dest_dir rescue nil
     end
+
     it 'extracts only docs folder' do
       paths = ['docs/**']
 
@@ -52,10 +50,7 @@ describe 'Repository integration' do
 
     context 'when submodule switch is on' do
       submodule_repo_root = File.join(
-        PackageProvider.root,
-        'spec',
-        'factories',
-        'testing-submodule-repo')
+        PackageProvider.root, 'spec', 'factories', 'testing-submodule-repo')
 
       submodule_dir = File.join('/', 'tmp', 'submodule_repo')
 
@@ -65,11 +60,7 @@ describe 'Repository integration' do
 
         paths = ['/submodule', '.gitmodules']
 
-        repo.clone(
-          dest_dir,
-          'e5f69f823d80c0c00deb448e88cf56828cb48351',
-          paths,
-          true)
+        repo.clone(dest_dir, 'e5f69f823d80c0c00deb448e88cf56828cb48351', paths, true)
 
         pth_subm_folds = File.join(dest_dir, 'submodule', 'submodule_sources')
         pth_to_readme = File.join(dest_dir, 'submodule', 'README.md')
@@ -84,11 +75,7 @@ describe 'Repository integration' do
 
         paths = ['/**']
 
-        repo.clone(
-          dest_dir,
-          '23e4306cc6e8fe5122f075be971e6155e00b5ad9',
-          paths,
-          true)
+        repo.clone(dest_dir, '23e4306cc6e8fe5122f075be971e6155e00b5ad9', paths, true)
 
         pth_subm_folds = File.join(dest_dir, 'submodule', 'submodule_sources')
         pth_to_readme = File.join(dest_dir, 'submodule', 'README.md')

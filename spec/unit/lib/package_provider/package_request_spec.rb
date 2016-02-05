@@ -1,13 +1,10 @@
 describe PackageProvider::PackageRequest do
   let(:simple_request) do
-    PackageProvider::RepositoryRequest.new(
-      'package_provider', 'fake_commit', nil)
+    PackageProvider::RepositoryRequest.new('package_provider', 'fake_commit', nil)
   end
 
   let(:request) do
-    part = PackageProvider::RepositoryRequest.new(
-      'fake_repo', 'fake_commit', 'fake_branch')
-
+    part = PackageProvider::RepositoryRequest.new('fake_repo', 'fake_commit', 'fake_branch')
     part.add_folder_override('b', 'b')
     part.add_folder_override('a')
     part.add_folder_override('b')
@@ -31,13 +28,11 @@ describe PackageProvider::PackageRequest do
 
   describe '#to_tsd' do
     it 'returns one request well formated' do
-      expect(subject.to_tsd)
-        .to eq('package_provider|fake_commit')
+      expect(subject.to_tsd).to eq('package_provider|fake_commit')
     end
     it 'returns multiple requests well formated' do
       expect(subject_with_ssh_and_folder_override.to_tsd)
-        .to eq('package_provider|fake_commit,' \
-               'fake_repo|fake_branch:fake_commit(b>b,a,b,a>a)')
+        .to eq('package_provider|fake_commit,fake_repo|fake_branch:fake_commit(b>b,a,b,a>a)')
     end
   end
 end

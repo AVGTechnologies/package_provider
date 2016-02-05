@@ -18,8 +18,7 @@ module PackageProvider
         get '/:alias' do
           repo_alias = PackageProvider::RepositoryAlias.find(params['alias'])
           unless repo_alias
-            mes = "Couldn't find RepositoryAlias with alias=" \
-                  "#{params['alias'].inspect}"
+            mes = "Couldn't find RepositoryAlias with alias=#{params['alias'].inspect}"
             halt 404, { message: mes }.to_json
           end
           repo_alias.to_json

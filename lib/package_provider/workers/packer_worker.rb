@@ -14,14 +14,12 @@ module PackageProvider
 
     def perform(package_hash, package_request_as_json)
       PackageProvider.logger.info(
-        'Performing packing for: ' \
-        "#{package_request_as_json} into #{package_hash}")
+        "Performing packing for: #{package_request_as_json} into #{package_hash}")
 
       parser = PackageProvider::Parser.new
       package_request = parser.parse_json(package_request_as_json)
 
-      PackageProvider.logger.info(
-        "Packing: #{package_request.to_tsd} #{package_hash}")
+      PackageProvider.logger.info("Packing: #{package_request.to_tsd} #{package_hash}")
 
       waiting_for_repo = false
       package_request.each do |req|
@@ -35,8 +33,7 @@ module PackageProvider
         begin
           CachedPackage.new(package_request, package_hash).cache_package
         rescue PackageProvider::CachedPackage::PackingInProgress
-          PackageProvider.logger.info(
-            "Packing in progress #{package_request.to_tsd}")
+          PackageProvider.logger.info("Packing in progress #{package_request.to_tsd}")
         end
       end
     end
@@ -44,8 +41,7 @@ module PackageProvider
     private
 
     def reschedule(package_hash, package_request)
-      PackageProvider.logger.info(
-        "packer reschedule #{package_hash} #{package_request.to_tsd}")
+      PackageProvider.logger.info("packer reschedule #{package_hash} #{package_request.to_tsd}")
 
       PackerWorker.perform_in(
         PackageProvider.config.sidekiq.packer_reschedule_time.seconds,

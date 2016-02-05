@@ -69,9 +69,7 @@ describe 'Cached repository integration' do
 
     it 'removes .clone_lock file on Exception' do
       expect(repo).to receive(:clone).with(any_args) { fail RuntimeError }
-
-      expect { repo.cached_clone(request) }.to raise_error(
-        RuntimeError)
+      expect { repo.cached_clone(request) }.to raise_error(RuntimeError)
 
       expect(File.exist?(dir + repo_ready)).to be false
       expect(File.exist?(dir + repo_clone)).to be false

@@ -13,18 +13,15 @@ module PackageProvider
         register ErrorHandling
 
         before do
-          response['Access-Control-Allow-Origin'] =
-            PackageProvider.config.allowed_origin
+          response['Access-Control-Allow-Origin'] = PackageProvider.config.allowed_origin
         end
 
         # CORS
         options '*' do
-          response.headers['Access-Control-Allow-Methods'] =
-            'HEAD, GET, PUT, POST, DELETE, OPTIONS'
+          response.headers['Access-Control-Allow-Methods'] = 'HEAD, GET, PUT, POST, DELETE, OPTIONS'
           # Needed for AngularJS
           response.headers['Access-Control-Allow-Headers'] =
-            'X-Requested-With, X-HTTP-Method-Override, Content-Type, ' \
-            'Cache-Control, Accept'
+            'X-Requested-With, X-HTTP-Method-Override, Content-Type, Cache-Control, Accept'
           halt 200
         end
 

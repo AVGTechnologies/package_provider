@@ -8,9 +8,7 @@ describe PackageProvider::RepositoryConnectionPool do
   repo_url = 'git@github.com:AVGTechnologies/package_provider.git'
 
   let(:subject) { PackageProvider::RepositoryConnectionPool.new }
-  let(:request) do
-    PackageProvider::RepositoryRequest.new(repo_url, nil, 'fake_branch')
-  end
+  let(:request) { PackageProvider::RepositoryRequest.new(repo_url, nil, 'fake_branch') }
   let(:malformed_request) do
     PackageProvider::RepositoryRequest.new('not_a_git_repo', nil, 'fake_branch')
   end
@@ -60,26 +58,21 @@ describe PackageProvider::RepositoryConnectionPool do
         .and_return(['', '', status])
       )
 
-      expect { c_pool.with { nil } }
-        .to raise_error(PackageProvider::Repository::CannotInitRepo)
+      expect { c_pool.with { nil } }.to raise_error(PackageProvider::Repository::CannotInitRepo)
 
       expect(File.exist?(error_path(malformed_request))).to be true
-      expect(File.exist?(package_part_ready_path(malformed_request)))
-        .to be true
+      expect(File.exist?(package_part_ready_path(malformed_request))).to be true
     end
 
     it 'create error and package_part_ready files on general error' do
       c_pool = subject.fetch(malformed_request)
 
-      expect(Open3).to receive(:capture3).with(any_args) do
-        fail StandardError
-      end
+      expect(Open3).to receive(:capture3).with(any_args) { fail StandardError }
 
       expect { c_pool.with { nil } }.to raise_error(StandardError)
 
       expect(File.exist?(error_path(malformed_request))).to be true
-      expect(File.exist?(package_part_ready_path(malformed_request)))
-        .to be true
+      expect(File.exist?(package_part_ready_path(malformed_request))).to be true
     end
 
     def error_path(request)

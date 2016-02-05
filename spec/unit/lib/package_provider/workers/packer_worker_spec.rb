@@ -8,9 +8,7 @@ describe PackageProvider::PackerWorker do
     req = PackageProvider::PackageRequest.new
     req << PackageProvider::RepositoryRequest.new('repo', 'commit', nil)
   end
-  let(:repository_request) do
-    PackageProvider::RepositoryRequest.new('repo', nil, 'branch')
-  end
+  let(:repository_request) { PackageProvider::RepositoryRequest.new('repo', nil, 'branch') }
   let(:package_request_without_commit_hash) do
     req = PackageProvider::PackageRequest.new
     req << repository_request

@@ -8,8 +8,7 @@ module PackageProvider
     class << self
       def config_hash
         @config_hash ||=
-          YAML.load(File.read(CONFIG_FILE.call))
-          .with_indifferent_access[PackageProvider.env] || {}
+          YAML.load(File.read(CONFIG_FILE.call)).with_indifferent_access[PackageProvider.env] || {}
       end
 
       def reload!

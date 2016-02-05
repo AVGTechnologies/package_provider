@@ -44,8 +44,6 @@ module PackageProvider
       entries.each do |e|
         disk_file_path = File.join(input_dir, e)
         zip_file_path = zip_file_path(path, e, input_dir)
-        PackageProvider.logger.debug(
-          "Deflating #{disk_file_path} into #{zip_file_path}")
 
         if File.directory? disk_file_path
           recursively_deflate_directory(disk_file_path, io, zip_file_path)

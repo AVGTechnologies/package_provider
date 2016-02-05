@@ -43,8 +43,7 @@ module PackageProvider
             return PackageProvider::Parser.new.parse(request.body.read)
           end
         rescue => err
-          halt 400,
-               { message: 'Unable to process request.', error: err }.to_json
+          halt 400, { message: 'Unable to process request.', error: err }.to_json
         end
       end
     end
