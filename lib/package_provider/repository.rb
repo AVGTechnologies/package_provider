@@ -10,8 +10,7 @@ module PackageProvider
     attr_reader :repo_url, :repo_root
 
     CLONE_SCRIPT = File.join(PackageProvider.root, 'lib', 'scripts', 'clone.sh')
-    INIT_SCRIPT = File.join(
-      PackageProvider.root, 'lib', 'scripts', 'init_repo.sh')
+    INIT_SCRIPT = File.join(PackageProvider.root, 'lib', 'scripts', 'init_repo.sh')
 
     class InvalidRepoPath < ArgumentError
     end
@@ -88,10 +87,8 @@ module PackageProvider
     def clone(dest_dir, treeish, paths, use_submodules = false)
       fail InvalidRepoPath, "Folder #{dest_dir} exists" if Dir.exist?(dest_dir)
 
-      logger.debug "clonning repo #{repo_root}: " \
-        " [dest_dir: #{dest_dir.inspect}, " \
-        "treeish: #{treeish.inspect}, " \
-        "use_submodules: #{use_submodules.inspect}]"
+      logger.debug "clonning repo #{repo_root}: [dest_dir: #{dest_dir.inspect}, " \
+        "treeish: #{treeish.inspect}, use_submodules: #{use_submodules.inspect}]"
 
       begin
         FileUtils.mkdir_p(dest_dir)

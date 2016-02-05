@@ -89,9 +89,7 @@ module PackageProvider
         errors << error if error
         next unless errors.empty?
 
-        req.folder_override.each do |fo|
-          packer.add_folder(checkout_dir, fo)
-        end
+        req.folder_override.each { |fo| packer.add_folder(checkout_dir, fo) }
       end
 
       errors.empty? ? packer.flush : package_error!(errors)
@@ -102,9 +100,7 @@ module PackageProvider
     end
 
     def package_error!(message)
-      File.open(@path + ERROR, 'w+') do |f|
-        f.puts(message.to_json)
-      end
+      File.open(@path + ERROR, 'w+') { |f| f.puts(message.to_json) }
     end
 
     def lock_package

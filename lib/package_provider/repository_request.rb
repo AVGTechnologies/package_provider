@@ -10,8 +10,7 @@ module PackageProvider
       def from_json(json)
         req = JSON.parse(json)
 
-        res = RepositoryRequest.new(
-          req['repository'], req['commit'], req['branch'])
+        res = RepositoryRequest.new(req['repository'], req['commit'], req['branch'])
 
         if req['folderOverride']
           req['folderOverride'].each do |fo|
@@ -107,15 +106,14 @@ module PackageProvider
       result << "#{branch}:#{commit_hash}" if branch && commit_hash
       result << branch.to_s unless commit_hash
       result << commit_hash.to_s unless branch
-      unless folder_override.empty?
-        result << "(#{folder_override.map(&:to_tsd).join(',')})"
-      end
+      result << "(#{folder_override.map(&:to_tsd).join(',')})" unless folder_override.empty?
+
       result
     end
 
     def ==(other)
-      repo == other.repo && commit_hash == other.commit_hash &&
-        branch == other.branch && folder_override == other.folder_override
+      repo == other.repo && commit_hash == other.commit_hash && branch == other.branch &&
+        folder_override == other.folder_override
     end
 
     private

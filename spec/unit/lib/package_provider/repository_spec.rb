@@ -7,13 +7,11 @@ describe PackageProvider::Repository do
   PackageProvider::Repository.temp_prefix = "pp_tests_#{rand(1000)}"
 
   let(:repo) do
-    PackageProvider::Repository.new(
-      'https://github.com/AVGTechnologies/package_provider')
+    PackageProvider::Repository.new('https://github.com/AVGTechnologies/package_provider')
   end
 
   let(:repo2) do
-    PackageProvider::Repository.new(
-      'git@github.com:ondrej-hosak/package_provider.git')
+    PackageProvider::Repository.new('git@github.com:ondrej-hosak/package_provider.git')
   end
 
   let(:repo3) do
@@ -22,27 +20,13 @@ describe PackageProvider::Repository do
   end
 
   let(:repo4) do
-    PackageProvider::Repository.new(
-      'ssh://git@stash.megacorp.com:8085/xxx/package_provider.git')
+    PackageProvider::Repository.new('ssh://git@stash.megacorp.com:8085/xxx/package_provider.git')
   end
 
-  let(:repo5) do
-    PackageProvider::Repository.new(
-      '/tmp/package_provider')
-  end
-
-  let(:repo6) do
-    PackageProvider::Repository.new(
-      '/package_provider')
-  end
-
-  let(:request) do
-    PackageProvider::RepositoryRequest.new('test', nil, 'branch')
-  end
-
-  let(:request_with_nil_branch) do
-    PackageProvider::RepositoryRequest.new('test', nil, nil)
-  end
+  let(:repo5) { PackageProvider::Repository.new('/tmp/package_provider') }
+  let(:repo6) { PackageProvider::Repository.new('/package_provider') }
+  let(:request) { PackageProvider::RepositoryRequest.new('test', nil, 'branch') }
+  let(:request_with_nil_branch) { PackageProvider::RepositoryRequest.new('test', nil, nil) }
 
   let(:request_with_wrong_branch) do
     PackageProvider::RepositoryRequest.new('test', nil, 'non-existing')
@@ -81,9 +65,7 @@ describe PackageProvider::Repository do
     it 'raise exception if local folder to clone does\'nt exists', :skip_hook do
       expect do
         PackageProvider::Repository.new(
-          'https://github.com/AVGTechnologies/package_provider',
-          '/path_not_exist'
-        )
+          'https://github.com/AVGTechnologies/package_provider', '/path_not_exist')
       end.to raise_error(PackageProvider::Repository::InvalidRepoPath)
     end
   end
@@ -135,8 +117,7 @@ describe PackageProvider::Repository do
   describe '#metriks_key' do
     context 'returns metricks key for' do
       it 'http://github' do
-        expect(repo.send(:metriks_key))
-          .to eq('AVGTechnologies_package_provider')
+        expect(repo.send(:metriks_key)).to eq('AVGTechnologies_package_provider')
       end
 
       it 'ssh://github' do

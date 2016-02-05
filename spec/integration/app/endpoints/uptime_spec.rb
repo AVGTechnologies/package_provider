@@ -9,10 +9,7 @@ describe 'Application API uptime' do
 
   describe 'uptime API' do
     let(:headers_json) do
-      {
-        'HTTP_ACCEPT' => 'application/json',
-        'CONTENT_TYPE' => 'application/json'
-      }
+      { 'HTTP_ACCEPT' => 'application/json', 'CONTENT_TYPE' => 'application/json' }
     end
     let(:prefix) { PackageProvider.config.base_url }
 

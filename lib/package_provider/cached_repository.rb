@@ -28,9 +28,7 @@ module PackageProvider
       end
 
       def repo_error!(path, message)
-        File.open(path + ERROR, 'w+') do |f|
-          f.puts(message)
-        end
+        File.open(path + ERROR, 'w+') { |f| f.puts(message) }
       end
 
       def repo_ready!(path)
@@ -92,8 +90,7 @@ module PackageProvider
 
     def handle_clone_error(cached_dir, error)
       if error.exit_code == 128
-        error.message.prepend(
-          'Some requested folders do not exist or commit hash does not exist.')
+        error.message.prepend('Some requested folders do not exist or commit hash does not exist.')
       end
 
       CachedRepository.repo_error!(cached_dir, error.message)
@@ -114,8 +111,7 @@ module PackageProvider
     rescue PackageProvider::Repository::CannotFetchRepo => err
       CachedRepository.repo_error!(cached_dir, err)
     rescue => err
-      logger.error(
-        "Clone exception: #{req.inspect} into #{cached_dir} err: #{err}")
+      logger.error("Clone exception: #{req.inspect} into #{cached_dir} err: #{err}")
       FileUtils.rm_rf(cached_dir)
       raise
     end

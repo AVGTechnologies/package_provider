@@ -28,20 +28,16 @@ describe PackageProvider::RepositoryConfig do
 
   describe '::find' do
     it 'returns local path for git repo url' do
-      expect(PackageProvider::RepositoryConfig.find(repo_url)[:cache_dir])
-        .to eq(path)
+      expect(PackageProvider::RepositoryConfig.find(repo_url)[:cache_dir]).to eq(path)
     end
     it 'returns nil for unknown repo url' do
-      expect(PackageProvider::RepositoryConfig.find('repo_url')[:cache_dir])
-        .to be nil
+      expect(PackageProvider::RepositoryConfig.find('repo_url')[:cache_dir]).to be nil
     end
     it 'uses configed value' do
-      expect(PackageProvider::RepositoryConfig.find(repo_url)[:timeout])
-        .to eq(2)
+      expect(PackageProvider::RepositoryConfig.find(repo_url)[:timeout]).to eq(2)
     end
     it 'uses default value from config when property not defined' do
-      expect(PackageProvider::RepositoryConfig.find(repo_url)[:pool_size])
-        .to eq(1)
+      expect(PackageProvider::RepositoryConfig.find(repo_url)[:pool_size]).to eq(1)
     end
   end
 end

@@ -76,21 +76,18 @@ describe PackageProvider::RepositoryRequest do
     it 'adds default folder override' do
       fully_specified_subject.normalize!
       expect(fully_specified_subject.folder_override).to eq(
-        [PackageProvider::FolderOverride.new(
-          *PackageProvider.config.default_folder_override)]
-      )
+        [PackageProvider::FolderOverride.new(*PackageProvider.config.default_folder_override)])
     end
     it 'rewrites repo alias' do
       subject_with_alias_and_folder_override.normalize!
-      expect(subject_with_alias_and_folder_override.repo).to eq(
-        PackageProvider::RepositoryAlias.find('package_provider').url
-      )
+      expect(subject_with_alias_and_folder_override.repo)
+        .to eq(PackageProvider::RepositoryAlias.find('package_provider').url)
     end
 
     it 'adds ssh:// prefix' do
       subject_with_ssh_and_folder_override.normalize!
-      expect(subject_with_ssh_and_folder_override.repo).to eq(
-        'ssh://git@github.com:AVGTechnologies/package_provider.git')
+      expect(subject_with_ssh_and_folder_override.repo)
+        .to eq('ssh://git@github.com:AVGTechnologies/package_provider.git')
     end
 
     it 'doesn\'t add ssh:// prefix for other formats' do
@@ -128,8 +125,8 @@ describe PackageProvider::RepositoryRequest do
         .to eq('ssh://github.com:AVGTechnologies/package_provider.git|branch')
     end
     it 'returns well formated request with commit hash' do
-      expect(subject_with_ssh_and_commit_hash.to_tsd).to eq(
-        'ssh://git@github.com:AVGTechnologies/package_provider.git|cmt')
+      expect(subject_with_ssh_and_commit_hash.to_tsd)
+        .to eq('ssh://git@github.com:AVGTechnologies/package_provider.git|cmt')
     end
     it 'returns well formated request with folder override' do
       expect(subject_with_ssh_and_folder_override.to_tsd)

@@ -14,21 +14,13 @@ describe 'Application API packages' do
 
   describe 'packages API' do
     let(:headers_json) do
-      {
-        'HTTP_ACCEPT' => 'application/json',
-        'CONTENT_TYPE' => 'application/json'
-      }
+      { 'HTTP_ACCEPT' => 'application/json', 'CONTENT_TYPE' => 'application/json' }
     end
     let(:headers_plain_text) do
-      {
-        'HTTP_ACCEPT' => 'application/json',
-        'CONTENT_TYPE' => 'text/plain'
-      }
+      { 'HTTP_ACCEPT' => 'application/json', 'CONTENT_TYPE' => 'text/plain' }
     end
     let(:headers_no_content_type) do
-      {
-        'HTTP_ACCEPT' => 'application/json'
-      }
+      { 'HTTP_ACCEPT' => 'application/json' }
     end
     let(:prefix) { PackageProvider.config.base_url }
     let(:fake_repo_dir) do
@@ -92,8 +84,7 @@ describe 'Application API packages' do
       FileUtils.touch(File.join(path, 'package.zip'))
       FileUtils.touch(path + PackageProvider::CachedPackage::PACKAGE_READY)
 
-      response = get(
-        "#{prefix}/packages/download/#{package_hash}", {}, headers_json)
+      response = get("#{prefix}/packages/download/#{package_hash}", {}, headers_json)
 
       expect(response.status).to eq 200
       FileUtils.rm_rf(path)
@@ -115,8 +106,7 @@ describe 'Application API packages' do
         package_hash = JSON.parse(last_response.body)['package_hash']
       end
 
-      response = get(
-        "#{prefix}/packages/download/#{package_hash}", {}, headers_json)
+      response = get("#{prefix}/packages/download/#{package_hash}", {}, headers_json)
 
       expect(response.content_length).to eq 220
       expect(response.status).to eq 200
@@ -196,10 +186,7 @@ describe 'Application API packages' do
         end
 
         it 'returns HTTP status 400 to bad request' do
-          response = post(
-            "#{prefix}/packages/download",
-            { repo: 'repo' }.to_json,
-            headers_json)
+          response = post("#{prefix}/packages/download", { repo: 'repo' }.to_json, headers_json)
 
           expect(response.status).to eq 400
         end

@@ -18,13 +18,9 @@ module PackageProvider
           PackageProvider.logger.debug(
             "Creating instance of #{req.repo} from #{repo_config.inspect}")
 
-          PackageProvider::CachedRepository.new(
-            req.repo,
-            repo_config[:cache_dir]
-          )
+          PackageProvider::CachedRepository.new(req.repo, repo_config[:cache_dir])
         rescue PackageProvider::Repository::CannotInitRepo
-          write_repo_error(
-            req, 'Cannot clone repo: check repo url or server availability')
+          write_repo_error(req, 'Cannot clone repo: check repo url or server availability')
           raise
         rescue => err
           write_repo_error(req, "Cannot clone repo: #{err}")
@@ -39,12 +35,10 @@ module PackageProvider
     end
 
     def write_repo_error(req, message)
-      path = PackageProvider::CachedRepository.cache_dir(req)
-      File.open(path + PackageProvider::CachedRepository::ERROR, 'w+') do |f|
-        f.puts(message)
-      end
-      FileUtils.touch(
-        path + PackageProvider::CachedRepository::PACKAGE_PART_READY)
+      repo_path = PackageProvider::CachedRepository.cache_dir(req)
+
+      PackageProvider::CachedRepository.repo_ready!(repo_path)
+      PackageProvider::CachedRepository.repo_error!(repo_path, message)
     end
   end
 end

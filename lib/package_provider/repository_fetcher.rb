@@ -15,8 +15,7 @@ module PackageProvider
     end
 
     def fetch_all
-      PackageProvider.logger.info(
-        "Starting fetching total of #{@repos.size} repositories")
+      PackageProvider.logger.info("Starting fetching total of #{@repos.size} repositories")
 
       time = Benchmark.realtime do
         @repos.each do |dir|

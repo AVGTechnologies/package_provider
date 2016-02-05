@@ -6,14 +6,12 @@ describe 'Repository worker integration' do
   end
 
   let(:repository_worker) { PackageProvider::RepositoryWorker.new }
-  let(:repo) do
-    File.join(PackageProvider.root, 'spec', 'factories', 'testing-repo')
-  end
+  let(:repo) { File.join(PackageProvider.root, 'spec', 'factories', 'testing-repo') }
   let(:req) do
     req = PackageProvider::RepositoryRequest.new(
       repo, '23e4306cc6e8fe5122f075be971e6155e00b5ad9', nil)
-
     req.add_folder_override('docs')
+
     req
   end
 

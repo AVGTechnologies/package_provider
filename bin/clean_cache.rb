@@ -10,14 +10,12 @@ OptionParser.new do |opts|
   opts.on('--only-failed',
           'clean only files created by failed caching') { |f| only_failed = f }
 end.parse!
-fail OptionParser::MissingArgument, 'The argument DAYS was not specified.' if
-  days.nil?
+fail OptionParser::MissingArgument, 'The argument DAYS was not specified.' if days.nil?
 
-sys_env = ENV['ENV'] || ENV['RACK_ENV'] || ENV['RAILS_ENV'] || ENV['APP_ENV']
-env = sys_env || 'development'
+sys_env = ENV['ENV'] || ENV['RACK_ENV'] || ENV['RAILS_ENV'] || ENV['APP_ENV'] || 'development'
 
 config_path = File.join(__dir__, '../config/package_provider.yml')
-config = YAML.load_file(config_path)[env]
+config = YAML.load_file(config_path)[sys_env]
 
 cleaner_script_path = File.join(__dir__, 'delete_old_data.sh')
 package_cache_path = File.expand_path(config['package_cache_root'])

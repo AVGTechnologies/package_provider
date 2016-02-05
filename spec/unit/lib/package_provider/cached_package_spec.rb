@@ -72,8 +72,9 @@ describe PackageProvider::CachedPackage do
 
       Thread.pass until thread_ready
 
-      expect { concurrent_empty_subject.cache_package }.to raise_error(
-        PackageProvider::CachedPackage::PackingInProgress)
+      expect { concurrent_empty_subject.cache_package }
+        .to raise_error(PackageProvider::CachedPackage::PackingInProgress)
+
       t.join
     end
 
@@ -89,9 +90,7 @@ describe PackageProvider::CachedPackage do
       path = PackageProvider::CachedRepository.cache_dir(repository_request)
       path << PackageProvider::CachedRepository::ERROR
 
-      File.open(path, 'w+') do |f|
-        f.puts('some error')
-      end
+      File.open(path, 'w+') { |f| f.puts('some error') }
 
       subject.cache_package
 

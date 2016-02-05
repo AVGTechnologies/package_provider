@@ -22,8 +22,7 @@ module PackageProvider
           folder_override = Regexp.last_match[1]
         end
 
-        src_branch, src_commit_hash =
-          get_branch_and_commit_hash(source_and_folder_override)
+        src_branch, src_commit_hash = get_branch_and_commit_hash(source_and_folder_override)
 
         resp = RepositoryRequest.new(repo, src_commit_hash, src_branch)
 

@@ -25,8 +25,7 @@ module PackageProvider
         return @aliases_hash if defined?(@aliases_hash) && @aliases_hash
         content = File.read(CONFIG_FILE.call)
         @aliases_hash =
-          YAML.load(content)
-          .with_indifferent_access[PackageProvider.env][:aliases] || {}
+          YAML.load(content).with_indifferent_access[PackageProvider.env][:aliases] || {}
       end
 
       def reload!

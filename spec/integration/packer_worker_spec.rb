@@ -9,21 +9,19 @@ describe 'Packer worker integration' do
 
   let(:packer_worker) { PackageProvider::PackerWorker.new }
   let(:package_hash) { 'abc' }
-  let(:repo) do
-    File.join(PackageProvider.root, 'spec', 'factories', 'testing-repo')
-  end
+  let(:repo) { File.join(PackageProvider.root, 'spec', 'factories', 'testing-repo') }
   let(:request_with_docs_folder) do
     req = PackageProvider::RepositoryRequest.new(
       repo, '23e4306cc6e8fe5122f075be971e6155e00b5ad9', nil)
-
     req.add_folder_override('docs')
+
     req
   end
   let(:request_with_sources_folder) do
     req = PackageProvider::RepositoryRequest.new(
       repo, '23e4306cc6e8fe5122f075be971e6155e00b5ad9', nil)
-
     req.add_folder_override('sources')
+
     req
   end
   let(:request_without_commit_hash) do
@@ -85,8 +83,7 @@ describe 'Packer worker integration' do
 
   it 'resolves commit hash' do
     Sidekiq::Testing.inline! do
-      packer_worker.perform(
-        package_hash, package_request_without_commit_hash.to_json)
+      packer_worker.perform(package_hash, package_request_without_commit_hash.to_json)
     end
 
     path = PackageProvider::CachedPackage.from_cache(package_hash)

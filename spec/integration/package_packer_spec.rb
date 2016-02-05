@@ -42,8 +42,7 @@ describe 'PackagePacker integration' do
     end
 
     it 'adds overrided file to final archive' do
-      subject.add_folder(
-        test_path, PackageProvider::FolderOverride.new('lib/app.rb', 'docs'))
+      subject.add_folder(test_path, PackageProvider::FolderOverride.new('lib/app.rb', 'docs'))
       subject.flush
 
       zip = Zip::File.open(package_path + '/package.zip')
