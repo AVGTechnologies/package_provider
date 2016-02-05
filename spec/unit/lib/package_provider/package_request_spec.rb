@@ -22,7 +22,7 @@ describe PackageProvider::PackageRequest do
     subject
   end
 
-  let(:subject2) do
+  let(:subject_with_ssh_and_folder_override) do
     subject = PackageProvider::PackageRequest.new
     subject << simple_request
     subject << request
@@ -35,7 +35,7 @@ describe PackageProvider::PackageRequest do
         .to eq('package_provider|fake_commit')
     end
     it 'returns multiple requests well formated' do
-      expect(subject2.to_tsd)
+      expect(subject_with_ssh_and_folder_override.to_tsd)
         .to eq('package_provider|fake_commit,' \
                'fake_repo|fake_branch:fake_commit(b>b,a,b,a>a)')
     end

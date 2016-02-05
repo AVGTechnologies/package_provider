@@ -1,7 +1,6 @@
 describe PackageProvider::RepositoryRequest do
-  let(:subject) do
-    part = PackageProvider::RepositoryRequest.new(
-      'package_provider', nil, 'fake_branch')
+  let(:subject_with_alias_and_folder_override) do
+    part = PackageProvider::RepositoryRequest.new('package_provider', nil, 'fake_branch')
 
     part.add_folder_override('b', 'a')
     part.add_folder_override('.gitmodules', nil)
@@ -10,9 +9,9 @@ describe PackageProvider::RepositoryRequest do
     part
   end
 
-  let(:subject2) do
+  let(:subject_with_ssh_and_folder_override) do
     part = PackageProvider::RepositoryRequest.new(
-      'fake_repo', 'fake_commit', nil)
+      'git@github.com:AVGTechnologies/package_provider.git', 'fake_commit', nil)
 
     part.add_folder_override('b', 'b')
     part.add_folder_override('a')
@@ -22,56 +21,38 @@ describe PackageProvider::RepositoryRequest do
     part
   end
 
-  let(:subject3) do
-    PackageProvider::RepositoryRequest.new(
-      'fake_repo', 'fake_commit', 'fake_branch')
+  let(:fully_specified_subject) do
+    PackageProvider::RepositoryRequest.new('fake_repo', 'fake_commit', 'fake_branch')
   end
 
-  let(:subject4) do
-    PackageProvider::RepositoryRequest.new('fake_repo', nil, 'fake_branch')
-  end
+  let(:subject_without_repo) { PackageProvider::RepositoryRequest.new(nil, 'fake_commit', nil) }
 
-  let(:subject5) do
-    PackageProvider::RepositoryRequest.new('fake_repo', 'fake_commit', nil)
-  end
-
-  let(:subject6) do
-    PackageProvider::RepositoryRequest.new(nil, 'fake_commit', nil)
-  end
-
-  let(:subject7) do
-    part = PackageProvider::RepositoryRequest.new('repo', 'fake_commit', nil)
-    part.add_folder_override(nil)
-    part
-  end
-
-  let(:subject8) do
-    PackageProvider::RepositoryRequest.new(
-      'git@github.com:AVGTechnologies/package_provider.git', 'commit', nil)
-  end
-
-  let(:subject9) do
+  let(:subject_with_ssh_and_commit_hash) do
     PackageProvider::RepositoryRequest.new(
       'ssh://git@github.com:AVGTechnologies/package_provider.git', 'cmt', nil)
   end
 
-  let(:subject10) do
+  let(:subject_with_ssh_and_branch) do
     PackageProvider::RepositoryRequest.new(
-      'ssh://github.com:AVGTechnologies/package_provider.git', 'commit', nil)
+      'ssh://github.com:AVGTechnologies/package_provider.git', nil, 'branch')
+  end
+
+  let(:subject_with_repo_only) do
+    PackageProvider::RepositoryRequest.new('fake_repo', nil, nil)
   end
 
   describe '#submodules?' do
     it 'sets git modules true when .gitmodules is present' do
-      expect(subject.submodules?).to be true
+      expect(subject_with_alias_and_folder_override.submodules?).to be true
     end
     it 'not sets git modules false when .gitmodules is missing' do
-      expect(subject2.submodules?).to be false
+      expect(subject_with_ssh_and_folder_override.submodules?).to be false
     end
   end
 
   describe '#to_json' do
     it 'returns json formated class with folder overide' do
-      expect(subject.to_json).to eql(
+      expect(subject_with_alias_and_folder_override.to_json).to eql(
         MultiJson.dump(
           repository: 'package_provider',
           branch: 'fake_branch',
@@ -82,7 +63,7 @@ describe PackageProvider::RepositoryRequest do
             { source: 'a', destinationOverride: 'b' }]))
     end
     it 'returns json formated class without folder override' do
-      expect(subject3.to_json).to eql(
+      expect(fully_specified_subject.to_json).to eql(
         MultiJson.dump(
           repository: 'fake_repo',
           branch: 'fake_branch',
@@ -93,102 +74,108 @@ describe PackageProvider::RepositoryRequest do
 
   describe '#normalize!' do
     it 'adds default folder override' do
-      subject3.normalize!
-      expect(subject3.folder_override).to eq(
+      fully_specified_subject.normalize!
+      expect(fully_specified_subject.folder_override).to eq(
         [PackageProvider::RepositoryRequest::FolderOverride.new(
           *PackageProvider.config.default_folder_override)]
       )
     end
     it 'rewrites repo alias' do
-      subject.normalize!
-      expect(subject.repo).to eq(
+      subject_with_alias_and_folder_override.normalize!
+      expect(subject_with_alias_and_folder_override.repo).to eq(
         PackageProvider::RepositoryAlias.find('package_provider').url
       )
     end
 
     it 'adds ssh:// prefix' do
-      subject8.normalize!
-      expect(subject8.repo).to eq(
+      subject_with_ssh_and_folder_override.normalize!
+      expect(subject_with_ssh_and_folder_override.repo).to eq(
         'ssh://git@github.com:AVGTechnologies/package_provider.git')
     end
 
-    it 'doesn\'t adds ssh:// prefix for other formats' do
-      repo = subject4.repo
-      subject4.normalize!
-      expect(subject4.repo).to eq(repo)
+    it 'doesn\'t add ssh:// prefix for other formats' do
+      repo = fully_specified_subject.repo
+      fully_specified_subject.normalize!
+      expect(fully_specified_subject.repo).to eq(repo)
     end
 
-    it 'doesn\'t adds ssh:// prefix if present' do
-      repo = subject9.repo
-      subject9.normalize!
-      expect(subject9.repo).to eq(repo)
+    it 'doesn\'t add ssh:// prefix if present' do
+      repo = subject_with_ssh_and_commit_hash.repo
+      subject_with_ssh_and_commit_hash.normalize!
+      expect(subject_with_ssh_and_commit_hash.repo).to eq(repo)
     end
 
-    it 'doesn\'t adds ssh:// prefix if username not present' do
-      repo = subject10.repo
-      subject10.normalize!
-      expect(subject10.repo).to eq(repo)
+    it 'doesn\'t add ssh:// prefix if username not present' do
+      repo = subject_with_ssh_and_branch.repo
+      subject_with_ssh_and_branch.normalize!
+      expect(subject_with_ssh_and_branch.repo).to eq(repo)
     end
   end
 
   describe '#checkout_mask' do
     it 'returns checkout mask' do
-      expect(subject.checkout_mask).to eq(['b', '.gitmodules', 'a'])
+      expect(subject_with_alias_and_folder_override.checkout_mask).to eq(['b', '.gitmodules', 'a'])
     end
   end
 
   describe '#to_tsd' do
     it 'returns well formated simple request' do
-      expect(subject3.to_tsd)
+      expect(fully_specified_subject.to_tsd)
         .to eq('fake_repo|fake_branch:fake_commit')
     end
     it 'returns well formated request with branch' do
-      expect(subject4.to_tsd)
-        .to eq('fake_repo|fake_branch')
+      expect(subject_with_ssh_and_branch.to_tsd)
+        .to eq('ssh://github.com:AVGTechnologies/package_provider.git|branch')
     end
     it 'returns well formated request with commit hash' do
-      expect(subject5.to_tsd)
-        .to eq('fake_repo|fake_commit')
+      expect(subject_with_ssh_and_commit_hash.to_tsd).to eq(
+        'ssh://git@github.com:AVGTechnologies/package_provider.git|cmt')
     end
     it 'returns well formated request with folder override' do
-      expect(subject2.to_tsd)
-        .to eq('fake_repo|fake_commit(b>b,a,b,a>a)')
+      expect(subject_with_ssh_and_folder_override.to_tsd)
+        .to eq('git@github.com:AVGTechnologies/package_provider.git|fake_commit(b>b,a,b,a>a)')
     end
   end
 
   describe '#valid?' do
-    it 'returns true if everthing is ok' do
-      expect(subject2.valid?).to be true
+    it 'returns true if everything is ok' do
+      expect(subject_with_ssh_and_folder_override.valid?).to be true
     end
     it 'returns false if repo is not specified' do
-      expect(subject6.valid?).to be false
+      expect(subject_without_repo.valid?).to be false
     end
-    it 'returns false if commit hash is not specified' do
-      expect(subject4.valid?).to be false
+    it 'returns false if commit hash and branch is not specified' do
+      expect(subject_with_repo_only.valid?).to be false
+    end
+    it 'returns true if branch is present and commit hash is null' do
+      expect(subject_with_ssh_and_commit_hash.valid?).to be true
+    end
+    it 'returns true if commit hash is present and branch is null' do
+      expect(subject_with_ssh_and_branch.valid?).to be true
     end
   end
 
   describe '#errors' do
     it 'returns error if repo is missing' do
-      expect(subject6.errors).to eq(['Repository is missing'])
+      expect(subject_without_repo.errors).to eq(['Repository is missing'])
     end
-    it 'returns error if commit hash is missing' do
-      expect(subject4.errors).to eq(['Commit hash is missing'])
+    it 'returns error if commit hash and branch is missing' do
+      expect(subject_with_repo_only.errors).to eq(['Commit hash and branch is missing'])
     end
   end
 end
 
 describe PackageProvider::RepositoryRequest::FolderOverride do
-  let(:subject) do
+  let(:valid_subject) do
     PackageProvider::RepositoryRequest::FolderOverride.new('source', 'dest')
   end
-  let(:subject2) do
+  let(:subject_with_no_source_and_invalid_destination) do
     PackageProvider::RepositoryRequest::FolderOverride.new(nil, '/')
   end
-  let(:subject3) do
+  let(:subject_with_leading_slash_in_destination) do
     PackageProvider::RepositoryRequest::FolderOverride.new('source', '/')
   end
-  let(:subject4) do
+  let(:subject_with_backslash_in_destination) do
     PackageProvider::RepositoryRequest::FolderOverride.new('source', '\\')
   end
 
@@ -216,37 +203,37 @@ describe PackageProvider::RepositoryRequest::FolderOverride do
 
   describe '#valid' do
     it 'returns true if folder override is ok' do
-      expect(subject.valid?).to be true
+      expect(valid_subject.valid?).to be true
     end
-    it 'returns false if has no source and des starts with /' do
-      expect(subject2.valid?).to be false
+    it 'returns false if has no source and destination starts with /' do
+      expect(subject_with_no_source_and_invalid_destination.valid?).to be false
     end
     it 'returns false if destination starts with /' do
-      expect(subject3.valid?).to be false
+      expect(subject_with_leading_slash_in_destination.valid?).to be false
     end
     it 'returns false if destination starts with \\' do
-      expect(subject4.valid?).to be false
+      expect(subject_with_backslash_in_destination.valid?).to be false
     end
   end
 
   describe '#errors' do
     it 'returns empty array if folder override is ok' do
-      expect(subject.errors)
+      expect(valid_subject.errors)
         .to eq []
     end
 
-    it 'returns errors if no source and des starts with /' do
-      expect(subject2.errors)
+    it 'returns errors if no source and destination starts with /' do
+      expect(subject_with_no_source_and_invalid_destination.errors)
         .to eq(['Source is missing', 'Destination can not start with \\ or /'])
     end
 
     it 'returns error if destination starts with /' do
-      expect(subject3.errors)
+      expect(subject_with_leading_slash_in_destination.errors)
         .to eq(['Destination can not start with \\ or /'])
     end
 
     it 'returns error if destination starts with \\' do
-      expect(subject4.errors)
+      expect(subject_with_backslash_in_destination.errors)
         .to eq(['Destination can not start with \\ or /'])
     end
 

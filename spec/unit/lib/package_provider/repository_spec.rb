@@ -36,6 +36,22 @@ describe PackageProvider::Repository do
       '/package_provider')
   end
 
+  let(:request) do
+    PackageProvider::RepositoryRequest.new('test', nil, 'branch')
+  end
+
+  let(:request_with_nil_branch) do
+    PackageProvider::RepositoryRequest.new('test', nil, nil)
+  end
+
+  let(:request_with_wrong_branch) do
+    PackageProvider::RepositoryRequest.new('test', nil, 'non-existing')
+  end
+
+  let(:request_with_wrong_repo) do
+    PackageProvider::RepositoryRequest.new('test', nil, 'non-existing')
+  end
+
   before(:all) do
     FakeFS.activate!
   end
@@ -142,6 +158,51 @@ describe PackageProvider::Repository do
       it 'local short path' do
         expect(repo6.send(:metriks_key)).to eq('package_provider')
       end
+    end
+  end
+
+  describe '::commit_hash' do
+    let(:status) { double(:status) }
+    before(:each) do |example|
+      unless example.metadata[:skip_git]
+        expect(Open3).to(
+          receive(:capture3)
+          .with(any_args)
+          .once
+          .and_return(['04e6f46c05860f1be0c9c8a0605628e188d282ce refs/heads/master', '', status])
+        )
+      end
+    end
+
+    it 'returns commit hash', :skip_hook do
+      expect(status).to receive(:success?).and_return(true)
+
+      expect(PackageProvider::Repository.commit_hash(request))
+        .to eq('04e6f46c05860f1be0c9c8a0605628e188d282ce')
+    end
+
+    it 'throws exception on nil branch', :skip_hook, :skip_git do
+      expect do
+        PackageProvider::Repository.commit_hash(request_with_nil_branch)
+      end.to raise_error(ArgumentError)
+    end
+
+    it 'throws exception on non-existing branch', :skip_hook do
+      expect(status).to receive(:success?).and_return(false)
+      expect(status).to receive(:exitstatus).twice.and_return(2)
+
+      expect do
+        PackageProvider::Repository.commit_hash(request_with_wrong_branch)
+      end.to raise_error(PackageProvider::Repository::GitError)
+    end
+
+    it 'throw exception on non-existing repo', :skip_hook do
+      expect(status).to receive(:success?).and_return(false)
+      expect(status).to receive(:exitstatus).twice.and_return(128)
+
+      expect do
+        PackageProvider::Repository.commit_hash(request_with_wrong_branch)
+      end.to raise_error(PackageProvider::Repository::GitError)
     end
   end
 end

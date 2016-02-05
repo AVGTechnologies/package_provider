@@ -5,11 +5,6 @@ module PackageProvider
       map(&:normalize!)
     end
 
-    def fingerprint
-      sha = Digest::SHA256.new
-      sha.hexdigest normalize!.to_json
-    end
-
     def to_tsd
       map(&:to_tsd).join(',')
     end

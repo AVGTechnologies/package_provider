@@ -27,6 +27,16 @@ module PackageProvider
         (repo_prepared?(path) || repo_error?(path)) && !repo_clonning?(path)
       end
 
+      def repo_error!(path, message)
+        File.open(path + ERROR, 'w+') do |f|
+          f.puts(message)
+        end
+      end
+
+      def repo_ready!(path)
+        FileUtils.touch(path + PACKAGE_PART_READY)
+      end
+
       private
 
       def repo_prepared?(path)
@@ -53,7 +63,7 @@ module PackageProvider
 
       locked_file = lock_repo(cached_dir)
       perform_and_handle_clone(req, cached_dir)
-      repo_ready!(cached_dir)
+      CachedRepository.repo_ready!(cached_dir)
 
       cached_dir
     ensure
@@ -86,13 +96,7 @@ module PackageProvider
           'Some requested folders do not exist or commit hash does not exist.')
       end
 
-      repo_error!(cached_dir, error.message)
-    end
-
-    def repo_error!(path, message)
-      File.open(path + ERROR, 'w+') do |f|
-        f.puts(message)
-      end
+      CachedRepository.repo_error!(cached_dir, error.message)
     end
 
     def unlock_repo(f)
@@ -102,17 +106,13 @@ module PackageProvider
       File.delete(f.path)
     end
 
-    def repo_ready!(path)
-      FileUtils.touch(path + PACKAGE_PART_READY)
-    end
-
     def perform_and_handle_clone(req, cached_dir)
       logger.info("Started clonning: #{req.inspect}")
       clone(cached_dir, req.commit_hash, req.checkout_mask, req.submodules?)
     rescue PackageProvider::Repository::CannotCloneRepo => err
       handle_clone_error(cached_dir, err)
     rescue PackageProvider::Repository::CannotFetchRepo => err
-      repo_error!(cached_dir, err)
+      CachedRepository.repo_error!(cached_dir, err)
     rescue => err
       logger.error(
         "Clone exception: #{req.inspect} into #{cached_dir} err: #{err}")

@@ -73,7 +73,7 @@ module PackageProvider
     end
 
     def valid_commit_hash_format?(commit_hash)
-      commit_hash.downcase =~ /\A[0-9a-f]+\z/
+      commit_hash.downcase =~ /\A[0-9a-f]{40}\z/
     end
 
     def get_branch_and_commit_hash(branch_and_commit_hash)

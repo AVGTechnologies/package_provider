@@ -14,52 +14,42 @@ module PackageProvider
     ERROR = '.error'
 
     class << self
-      def from_cache(package_request_or_fingerprint)
-        return nil unless package_ready?(package_request_or_fingerprint)
+      def from_cache(package_hash)
+        return nil unless package_ready?(package_hash)
         Metriks.meter('packageprovider.package.cached').mark
-        path_to_package(package_request_or_fingerprint)
+        package_fullpath(package_hash)
       end
 
-      def package_ready?(package_request_or_fingerprint)
-        path = package_path(package_request_or_fingerprint)
+      def package_ready?(package_hash)
+        path = package_directory(package_hash)
 
         Dir.exist?(path) && File.exist?(path + PACKAGE_READY) &&
-          File.exist?(File.join(path, 'package.zip')) &&
+          File.exist?(package_fullpath(package_hash)) &&
           !File.exist?(path + PACKAGE_CLONE_LOCK)
       end
 
-      def package_path(package_request_or_fingerprint)
-        fp = package_request_fingerprint(package_request_or_fingerprint)
-        File.join(PackageProvider.config.package_cache_root, fp)
+      def package_directory(package_hash)
+        File.join(PackageProvider.config.package_cache_root, package_hash)
       end
 
-      def errors(package_request_or_fingerprint)
-        fp = package_request_fingerprint(package_request_or_fingerprint)
-        return unless File.exist?(package_path(fp) + ERROR)
-        File.read(package_path(fp) + ERROR)
+      def errors(package_hash)
+        error_file_path = package_directory(package_hash) + ERROR
+        return nil unless File.exist?(error_file_path)
+        File.read(error_file_path)
       end
 
       private
 
-      def path_to_package(package_request_or_fingerprint)
-        fp = package_request_fingerprint(package_request_or_fingerprint)
-        File.join(package_path(fp), 'package.zip')
-      end
-
-      def package_request_fingerprint(package_request_or_fingerprint)
-        if package_request_or_fingerprint.respond_to?(:fingerprint)
-          package_request_or_fingerprint.fingerprint
-        else
-          package_request_or_fingerprint
-        end
+      def package_fullpath(package_hash)
+        File.join(package_directory(package_hash), 'package.zip')
       end
     end
 
     attr_reader :package_request
 
-    def initialize(package_request)
+    def initialize(package_request, package_hash)
       @package_request = package_request
-      @path = CachedPackage.package_path(@package_request.fingerprint)
+      @path = CachedPackage.package_directory(package_hash)
       @locked_package_file = nil
     end
 

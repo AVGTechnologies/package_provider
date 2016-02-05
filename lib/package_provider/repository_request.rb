@@ -112,6 +112,7 @@ module PackageProvider
     end
 
     attr_reader :repo, :commit_hash, :branch, :folder_override
+    attr_writer :commit_hash
 
     def initialize(repo, commit_hash, branch)
       @repo = repo ? repo.strip : nil
@@ -147,19 +148,16 @@ module PackageProvider
     end
 
     def valid?
-      # rubocop:disable DoubleNegation
-      !!(repo.try(:present?) && commit_hash.try(:present?) &&
-        folder_override.all?(&:valid?))
-      # rubocop:enable DoubleNegation
+      repo_valid? && revision_valid? && folder_override_valid?
     end
 
     def errors
       errors = []
-      errors << 'Repository is missing' unless repo
-      errors << 'Commit hash is missing' unless commit_hash
-      errors << folder_override.each_with_object([]) do |fo, s|
-        s << { source: fo.source, dest: fo.destination, errors: fo.errors }
-      end unless folder_override.empty?
+      errors << 'Repository is missing' unless repo_valid?
+      errors << 'Commit hash and branch is missing' unless revision_valid?
+      errors << folder_override.each_with_object([]) do |fo, result|
+        result << { source: fo.source, dest: fo.destination, errors: fo.errors }
+      end unless folder_override_valid?
       errors
     end
 
@@ -184,6 +182,7 @@ module PackageProvider
     def fingerprint
       @sha256 ||= Digest::SHA256.new
       h = { repository: repo,
+            branch: branch,
             treeish: commit_hash,
             paths: checkout_mask,
             submodule: submodules? }
@@ -203,10 +202,22 @@ module PackageProvider
     end
 
     def ==(other)
-      repo == other.repo &&
-        commit_hash == other.commit_hash &&
-        branch == other.branch &&
-        folder_override == other.folder_override
+      repo == other.repo && commit_hash == other.commit_hash &&
+        branch == other.branch && folder_override == other.folder_override
+    end
+
+    private
+
+    def revision_valid?
+      !(commit_hash.to_s.empty? && branch.to_s.empty?)
+    end
+
+    def repo_valid?
+      !repo.to_s.empty?
+    end
+
+    def folder_override_valid?
+      folder_override.all?(&:valid?)
     end
   end
 end
