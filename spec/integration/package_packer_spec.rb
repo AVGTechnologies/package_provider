@@ -2,7 +2,6 @@ describe 'PackagePacker integration' do
   test_path = '/tmp/pp_test'
   source_path = PackageProvider.root + '/spec/factories/testing-packer-folder'
   package_path = '/tmp/result_pp'
-  ns = PackageProvider::RepositoryRequest
 
   before(:all) do
     FileUtils.cp_r(source_path, test_path)
@@ -24,7 +23,7 @@ describe 'PackagePacker integration' do
 
   describe '#add_folder' do
     it 'adds overrided folder to final archive' do
-      subject.add_folder(test_path, ns::FolderOverride.new('lib', 'docs'))
+      subject.add_folder(test_path, PackageProvider::FolderOverride.new('lib', 'docs'))
       subject.flush
 
       zip = Zip::File.open(package_path + '/package.zip')
@@ -34,7 +33,7 @@ describe 'PackagePacker integration' do
     end
 
     it 'adds folder to final archive' do
-      subject.add_folder(test_path, ns::FolderOverride.new('docs', nil))
+      subject.add_folder(test_path, PackageProvider::FolderOverride.new('docs', nil))
       subject.flush
 
       zip = Zip::File.open(package_path + '/package.zip')
@@ -44,7 +43,7 @@ describe 'PackagePacker integration' do
 
     it 'adds overrided file to final archive' do
       subject.add_folder(
-        test_path, ns::FolderOverride.new('lib/app.rb', 'docs'))
+        test_path, PackageProvider::FolderOverride.new('lib/app.rb', 'docs'))
       subject.flush
 
       zip = Zip::File.open(package_path + '/package.zip')
@@ -54,7 +53,7 @@ describe 'PackagePacker integration' do
     end
 
     it 'adds file to final archive' do
-      subject.add_folder(test_path, ns::FolderOverride.new('lib/app.rb', nil))
+      subject.add_folder(test_path, PackageProvider::FolderOverride.new('lib/app.rb', nil))
       subject.flush
 
       zip = Zip::File.open(package_path + '/package.zip')
