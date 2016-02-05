@@ -13,7 +13,7 @@ describe PackageProvider::PackagePacker do
 
   describe '#add_folder' do
     it 'calls zip archive add_folder' do
-      override = PackageProvider::RepositoryRequest::FolderOverride.new(
+      override = PackageProvider::FolderOverride.new(
         'lib', 'docs')
 
       expect_any_instance_of(PackageProvider::ZipFileGenerator)
