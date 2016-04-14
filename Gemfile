@@ -19,7 +19,7 @@ gem 'rubyzip',              '~> 1.1'
 gem 'connection_pool',      '~> 2.2'
 gem 'sidekiq',              '~> 3.5'
 gem 'sidekiq-unique-jobs',  '~> 4.0'
-gem 'unicorn',              '~> 4.9'
+gem 'puma'
 
 group :test, :development do
   gem 'rspec'
