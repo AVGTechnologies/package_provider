@@ -44,7 +44,7 @@ Json format
 ]
 ```
 Where branch or treeish is required. Folder override part is not required. If you don't specify folder override, that config settings are used. You can combine multiple repositories and folders from repositories. You can use
-repository alias insted of repository url. List of aliases is in config/repository_aliases.yml file.
+repository alias insted of repository url. List of aliases is in config/repository_aliases.yml file. The whole repository could be returned when source folder override is specified as `/**`, for example: `repo|master(/**>foobar)`
 
 
 Prerequisites for development on windows machine

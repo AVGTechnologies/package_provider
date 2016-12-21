@@ -2,6 +2,7 @@
 /config/package_provider.yml
 /config/repository_aliases.yml
 /config/repository_config.yml
+/tags
 
 # emacs
 *~
