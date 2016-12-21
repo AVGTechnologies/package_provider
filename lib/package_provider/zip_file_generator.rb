@@ -29,6 +29,7 @@ module PackageProvider
     def write
       ::Zip::File.open(@output_file, ::Zip::File::CREATE) do |io|
         @folders.each do |input_dir, src, dest|
+          src = '' if src == '/**' # the whole src directory could be specified by /**
           path = source_dir(File.join(input_dir, src))
           write_entries(path, entries(src, input_dir), dest, io)
         end

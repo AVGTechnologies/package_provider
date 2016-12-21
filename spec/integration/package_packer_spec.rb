@@ -59,6 +59,32 @@ describe 'PackagePacker integration' do
 
       expect(zip.find_entry('app.rb')).not_to be nil
     end
+
+    it 'copies the whole repository into destination' do
+      subject.add_folder(test_path, PackageProvider::FolderOverride.new('/**', 'everything'))
+      subject.flush
+
+      zip = Zip::File.open(package_path + '/package.zip')
+
+      expect(zip.find_entry('everything/docs/test.md')).not_to be nil
+      expect(zip.find_entry('everything/docs')).not_to be nil
+      expect(zip.find_entry('everything/lib')).not_to be nil
+      expect(zip.find_entry('everything/lib/sublib')).not_to be nil
+      expect(zip.find_entry('everything/log')).not_to be nil
+    end
+
+    it 'copies the whole repository and preserves the repository structure' do
+      subject.add_folder(test_path, PackageProvider::FolderOverride.new('/**', nil))
+      subject.flush
+
+      zip = Zip::File.open(package_path + '/package.zip')
+
+      expect(zip.find_entry('docs/test.md')).not_to be nil
+      expect(zip.find_entry('docs')).not_to be nil
+      expect(zip.find_entry('lib')).not_to be nil
+      expect(zip.find_entry('lib/sublib')).not_to be nil
+      expect(zip.find_entry('log')).not_to be nil
+    end
   end
 
   describe '#flush' do
